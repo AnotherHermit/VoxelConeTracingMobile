@@ -85,7 +85,7 @@ void Scene::InitBuffers() {
 
 bool Scene::SetupScene(const char *path) {
     ModelLoader modelLoader;
-    if (!modelLoader.LoadScene(path, models, shaders, &maxVertex, &minVertex)) {
+    if (!modelLoader.LoadScene(path, models, &maxVertex, &minVertex)) {
         std::cout << "Failed to load scene: " << path << std::endl;
         return false;
     }
@@ -110,7 +110,7 @@ bool Scene::SetupScene(const char *path) {
 bool Scene::InitVoxel() {
     // Load a model for drawing the voxel
     ModelLoader modelLoader;
-    if (!modelLoader.LoadModel("resources/voxelLarge.obj", voxelModel, shaders->voxel)) {
+    if (!modelLoader.LoadModel("resources/voxelLarge.obj", voxelModel)) {
         std::cout << "Failed to load voxel model" << std::endl;
         return false;
     }
@@ -264,14 +264,14 @@ void Scene::SetupShadowMatrix() {
     glm::vec3 l = param.lightDir;
     glm::vec3 axis = glm::cross(l, z);
     // TODO: Make sure this is correct
-    float isSame = sqrt(axis.x * axis.x + axis.y * axis.y + axis.z * axis.z);
+    float isSame = (float)sqrt(axis.x * axis.x + axis.y * axis.y + axis.z * axis.z);
     if (isSame < glm::epsilon<float>()) {
-        param.MTShadowMatrix = glm::scale(glm::vec3(1.0f / sqrt(3.0f))) * param.MTOmatrix[2];
+        param.MTShadowMatrix = glm::scale(glm::vec3(1.0f / (float)sqrt(3.0f))) * param.MTOmatrix[2];
     } else {
         axis = normalize(axis);
         GLfloat angle = acos(glm::dot(z, l));
 
-        param.MTShadowMatrix = glm::rotate(angle, axis) * glm::scale(glm::vec3(1.0f / sqrt(3.0f)));
+        param.MTShadowMatrix = glm::rotate(angle, axis) * glm::scale(glm::vec3(1.0f / (float)sqrt(3.0f)));
     }
 
     // TODO: Only update the buffer after light direction has actually changed

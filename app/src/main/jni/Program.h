@@ -24,8 +24,6 @@ class Program {
 private:
     GLint winWidth, winHeight;
 
-    bool isRunning;
-
     Timer time;
     GLfloat FPS;
     ProgramStruct param;

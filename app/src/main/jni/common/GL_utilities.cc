@@ -21,7 +21,7 @@
 
 char *readFile(const char *file) {
     FILE *fptr;
-    long length;
+    size_t length;
     char *buf;
 
     if (file == NULL) {
@@ -40,7 +40,7 @@ char *readFile(const char *file) {
         return NULL;
     }
 
-    length = ftell(fptr); /* Find out how many bytes into the file we are */
+    length = (size_t)ftell(fptr); /* Find out how many bytes into the file we are */
     if (length < 0) {
         fprintf(stderr, "ftell reported negative length!\n");
         return NULL;
@@ -73,7 +73,7 @@ GLint printShaderInfoLog(GLuint obj, const char *fn) {
 
     if (infologLength > 2) {
         fprintf(stderr, "[From %s:]\n", fn);
-        infoLog = (char *) malloc(infologLength);
+        infoLog = (char *) malloc((size_t)infologLength);
         glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog);
         fprintf(stderr, "%s\n", infoLog);
         free(infoLog);
@@ -103,7 +103,7 @@ GLint printProgramInfoLog(GLuint obj, const char *vfn, const char *ffn,
             fprintf(stderr, "+%s+%s", tcfn, tefn);
         fprintf(stderr, ":]\n");
 
-        infoLog = (char *) malloc(infologLength);
+        infoLog = (char *) malloc((size_t)infologLength);
         glGetProgramInfoLog(obj, infologLength, &charsWritten, infoLog);
         fprintf(stderr, "%s\n", infoLog);
         free(infoLog);
@@ -121,59 +121,50 @@ GLuint compileShaders(const char *vs, const char *fs, const char *gs, const char
                       const char *tefn) {
     GLuint v, f, g, tc, te, p;
 
+    p = glCreateProgram();
+
     v = glCreateShader(GL_VERTEX_SHADER);
+    f = glCreateShader(GL_FRAGMENT_SHADER);
+    g = glCreateShader(GL_GEOMETRY_SHADER);
+    tc = glCreateShader(GL_TESS_CONTROL_SHADER);
+    te = glCreateShader(GL_TESS_EVALUATION_SHADER);
+
     glShaderSource(v, 1, &vs, NULL);
     glCompileShader(v);
+    glAttachShader(p, v);
+    glDeleteShader(v);
+    printShaderInfoLog(v, vfn);
 
     if (fs != NULL) {
-        f = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(f, 1, &fs, NULL);
         glCompileShader(f);
+        glAttachShader(p, f);
+        glDeleteShader(v);
+        printShaderInfoLog(f, ffn);
     }
     if (gs != NULL) {
-        g = glCreateShader(GL_GEOMETRY_SHADER);
         glShaderSource(g, 1, &gs, NULL);
         glCompileShader(g);
+        glAttachShader(p, g);
+        glDeleteShader(g);
+        printShaderInfoLog(g, gfn);
     }
 #ifdef GL_TESS_CONTROL_SHADER_EXT
     if (tcs != NULL) {
-        tc = glCreateShader(GL_TESS_CONTROL_SHADER);
         glShaderSource(tc, 1, &tcs, NULL);
         glCompileShader(tc);
-    }
-    if (tes != NULL) {
-        te = glCreateShader(GL_TESS_EVALUATION_SHADER);
-        glShaderSource(te, 1, &tes, NULL);
-        glCompileShader(te);
-    }
-#endif
-    p = glCreateProgram();
-
-    glAttachShader(p, v);
-    glDeleteShader(v);
-    if (fs != NULL) {
-        glAttachShader(p, f);
-        glDeleteShader(v);
-    }
-    if (gs != NULL) {
-        glAttachShader(p, g);
-        glDeleteShader(g);
-    }
-    if (tcs != NULL) {
         glAttachShader(p, tc);
         glDeleteShader(tc);
+        printShaderInfoLog(tc, tcfn);
     }
     if (tes != NULL) {
+        glShaderSource(te, 1, &tes, NULL);
+        glCompileShader(te);
         glAttachShader(p, te);
         glDeleteShader(te);
+        printShaderInfoLog(te, tefn);
     }
-
-
-    printShaderInfoLog(v, vfn);
-    if (fs != NULL) printShaderInfoLog(f, ffn);
-    if (gs != NULL) printShaderInfoLog(g, gfn);
-    if (tcs != NULL) printShaderInfoLog(tc, tcfn);
-    if (tes != NULL) printShaderInfoLog(te, tefn);
+#endif
 
     if (fs != NULL) {
         glLinkProgram(p);
@@ -313,7 +304,7 @@ void keyUp(unsigned char key, int x, int y) {
 
 void keyDown(unsigned char key, int x, int y) {
     keymap[(unsigned int) key] = 1;
-    keydownmap[(unsigned int) key] = 1 & keyupmap[(unsigned int) key];
+    keydownmap[(unsigned int) key] = keyupmap[(unsigned int) key] != 0;
     keyupmap[(unsigned int) key] = 0;
 }
 

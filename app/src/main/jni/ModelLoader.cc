@@ -21,13 +21,13 @@
 #include <iostream>
 
 bool ModelLoader::LoadScene(const char *path, std::vector<Model *> *outModels,
-                            ShaderList *initShaders, glm::vec3 **outMaxVertex,
+                            glm::vec3 **outMaxVertex,
                             glm::vec3 **outMinVertex) {
     if (!LoadModels(path)) return false;
     if (!LoadTextures()) return false;
 
     // Read all models
-    if (!AddModels(outModels, initShaders)) return false;
+    if (!AddModels(outModels)) return false;
 
     // Find the size of the scene
     if (!CalculateMinMax(outMaxVertex, outMinVertex)) return false;
@@ -39,7 +39,7 @@ bool ModelLoader::LoadScene(const char *path, std::vector<Model *> *outModels,
     return true;
 }
 
-bool ModelLoader::LoadModel(const char *path, Model *outModel, GLuint shader) {
+bool ModelLoader::LoadModel(const char *path, Model *outModel) {
     if (!LoadModels(path)) return false;
 
     // Load standard vertex data needed by all models, also creates VAO
@@ -52,9 +52,8 @@ bool ModelLoader::LoadModel(const char *path, Model *outModel, GLuint shader) {
     return true;
 }
 
-bool ModelLoader::LoadScene(const char *path, std::vector<Model *> *outModels,
-                            ShaderList *initShaders) {
-    return LoadScene(path, outModels, initShaders, nullptr, nullptr);
+bool ModelLoader::LoadScene(const char *path, std::vector<Model *> *outModels) {
+    return LoadScene(path, outModels, nullptr, nullptr);
 }
 
 bool ModelLoader::LoadModels(const char *path) {
@@ -150,7 +149,7 @@ GLuint ModelLoader::LoadTexture(const char *path) {
 
         default:
             std::cerr << "Bpp is in unknown format\n";
-            return -1;
+            return 0;
     }
     glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, textureData);
 
@@ -164,14 +163,9 @@ GLuint ModelLoader::LoadTexture(const char *path) {
     return texID;
 }
 
-bool ModelLoader::AddModels(std::vector<Model *> *models, ShaderList *shaders) {
+bool ModelLoader::AddModels(std::vector<Model *> *models) {
     if (models == nullptr) {
         std::cout << "No model vector was supplied when loading scene" << std::endl;
-        return false;
-    }
-
-    if (shaders == nullptr) {
-        std::cout << "No shader list was supplied when loading scene" << std::endl;
         return false;
     }
 

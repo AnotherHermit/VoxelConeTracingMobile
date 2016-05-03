@@ -49,8 +49,6 @@ public:
 
     void ShadowMap();
 
-    void SetVoxelDraw(bool enable);
-
     GLuint GetVAO() { return vao; }
 
     GLuint GetDiffuseID() { return diffuseID; }
