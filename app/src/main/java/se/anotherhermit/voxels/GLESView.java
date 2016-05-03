@@ -6,11 +6,8 @@ import android.opengl.GLSurfaceView;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-/**
- * Created by Conrad on 2016-05-02.
- */
 public class GLESView extends GLSurfaceView {
-    private static final String TAG = "GLES3JNI";
+    private static final String TAG = "GLESView";
     private static final boolean DEBUG = true;
 
     public GLESView(Context context) {
@@ -37,7 +34,7 @@ public class GLESView extends GLSurfaceView {
     }
 
     static {
-        System.loadLibrary("gles3jni");
+        System.loadLibrary("NativeGlue");
     }
 
     public static native void init();

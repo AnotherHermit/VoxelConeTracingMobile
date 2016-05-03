@@ -15,6 +15,7 @@ model {
             toolchain = 'clang'
             stl         = 'gnustl_static'
             cppFlags.addAll(['-std=c++11', '-Wall', '-fno-rtti', '-fno-exceptions'])
+            cppFlags.addAll(['-I' + file('src/main/jni/common')])
             CFlags.addAll(['-Wall'])
             ldLibs.addAll(['log','GLESv3', 'EGL'])
         }
