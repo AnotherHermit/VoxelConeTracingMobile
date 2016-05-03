@@ -3,7 +3,7 @@
 
 #include <android/log.h>
 
-#define LOG_TAG "ProceduralGeometry"
+#define LOG_TAG "Voxels"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
@@ -12,6 +12,11 @@
 #define GL_GEOMETRY_SHADER GL_GEOMETRY_SHADER_EXT
 #define GL_TESS_CONTROL_SHADER GL_TESS_CONTROL_SHADER_EXT
 #define GL_TESS_EVALUATION_SHADER GL_TESS_EVALUATION_SHADER_EXT
+
+#define BASE_ASSET_PATH    "/data/data/se.anotherhermit.voxels/files/"
+#define TEXTURE_PATH(name) BASE_ASSET_PATH "textures/" name
+#define MODEL_PATH(name)   BASE_ASSET_PATH "models/" name
+#define SHADER_PATH(name)  BASE_ASSET_PATH "shaders/" name
 
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>

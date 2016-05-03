@@ -13,7 +13,7 @@
 #include "Camera.h"
 #include "Scene.h"
 
-#include "common/GL_utilities.h"
+#include "GL_utilities.h"
 
 struct ProgramStruct {
     GLfloat currentT;
@@ -53,24 +53,22 @@ private:
 
 public:
     Program();
-
-    int Execute();
-
-    void timeUpdate();
+    ~Program();
 
     bool Init();
+    void Resize(int width, int height);
+    void Step();
 
+    //void timeUpdate();
     //void OnEvent(SDL_Event *Event);
     //void OnKeypress(SDL_Event *Event);
     //void OnMouseMove(SDL_Event *Event);
     //void CheckKeyDowns();
 
     void Update();
-
     void Render();
 
     void Clean();
-
 };
 
 #endif // PROGRAM_H

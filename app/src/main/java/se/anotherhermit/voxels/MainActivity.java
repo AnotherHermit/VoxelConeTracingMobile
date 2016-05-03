@@ -2,6 +2,7 @@ package se.anotherhermit.voxels;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.view.SurfaceHolder;
 
 public class MainActivity extends Activity {
 
@@ -10,6 +11,9 @@ public class MainActivity extends Activity {
     @Override protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         mView = new GLESView(getApplication());
+
+        //mView.getHolder().setFixedSize(400,400);
+
         setContentView(mView);
     }
 

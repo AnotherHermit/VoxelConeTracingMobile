@@ -13,8 +13,8 @@ Program::Program() {
     cam = NULL;
 
     // Window init size
-    winWidth = 800;
-    winHeight = 800;
+    winWidth = 0;
+    winHeight = 0;
 
     // Start state
     isRunning = true;
@@ -24,11 +24,28 @@ Program::Program() {
 
     // Set program parameters
     cameraStartPos = glm::vec3(0.0, 0.0, 2.0);
-    cameraFrustumFar = 5000.0f;
+    cameraFrustumFar = 500.0f;
 
     sceneSelect = 0;
     useOrtho = false;
     drawVoxelOverlay = false;
+}
+
+Program::~Program() {
+    Clean();
+}
+
+void Program::Step() {
+    Update();
+    Render();
+}
+
+void Program::Resize(int width, int height) {
+    winWidth = width;
+    winHeight = height;
+    glViewport(0,0,width,height);
+    cam->SetFrustum();
+    GetCurrentScene()->SetupSceneTextures();
 }
 
 /*
@@ -53,14 +70,14 @@ int Program::Execute() {
 
 	return 0;
 }*/
-
+/*
 void Program::timeUpdate() {
     time.endTimer();
     param.deltaT = time.getLapTime();
     param.currentT = time.getTime();
     FPS = 1.0f / time.getLapTime();
 }
-
+*/
 /*
 void APIENTRY openglCallbackFunction(
 	GLenum source,
@@ -123,26 +140,26 @@ bool Program::Init() {
     glBufferData(GL_UNIFORM_BUFFER, sizeof(ProgramStruct), &param, GL_STREAM_DRAW);
 
     // Load shaders for drawing
-    shaders.drawScene = loadShaders("src/shaders/drawModel.vert", "src/shaders/drawModel.frag");
-    shaders.drawData = loadShaders("src/shaders/drawData.vert", "src/shaders/drawData.frag");
+    shaders.drawScene = loadShaders(SHADER_PATH("drawModel.vert"), SHADER_PATH("drawModel.frag"));
+    shaders.drawData = loadShaders(SHADER_PATH("drawData.vert"), SHADER_PATH("drawData.frag"));
 
     // Load shaders for voxelization
-    shaders.voxelize = loadShadersG("src/shaders/voxelization.vert",
-                                    "src/shaders/voxelization.frag",
-                                    "src/shaders/voxelization.geom");
+    shaders.voxelize = loadShadersG(SHADER_PATH("voxelization.vert"),
+                                    SHADER_PATH("voxelization.frag"),
+                                    SHADER_PATH("voxelization.geom"));
 
     // Single triangle shader for deferred shading etc.
-    shaders.singleTriangle = loadShaders("src/shaders/drawTriangle.vert",
-                                         "src/shaders/drawTriangle.frag");
+    shaders.singleTriangle = loadShaders(SHADER_PATH("drawTriangle.vert"),
+                                         SHADER_PATH("drawTriangle.frag"));
 
     // Draw voxels from 3D texture
-    shaders.voxel = loadShaders("src/shaders/drawVoxel.vert", "src/shaders/drawVoxel.frag");
+    shaders.voxel = loadShaders(SHADER_PATH("drawVoxel.vert"), SHADER_PATH("drawVoxel.frag"));
 
     // Calculate mipmaps
-    shaders.mipmap = CompileComputeShader("src/shaders/mipmap.comp");
+    shaders.mipmap = CompileComputeShader(SHADER_PATH("mipmap.comp"));
 
     // Create shadowmap
-    shaders.shadowMap = loadShaders("src/shaders/shadowMap.vert", "src/shaders/shadowMap.frag");
+    shaders.shadowMap = loadShaders(SHADER_PATH("shadowMap.vert"), SHADER_PATH("shadowMap.frag"));
 
     // TODO: Make this a separate function
     // Set constant uniforms for the drawing programs
@@ -179,24 +196,24 @@ bool Program::Init() {
     if (!cam->Init()) return false;
 
     // Load scenes
-    //Scene* cornell = new Scene();
-    //if(!cornell->Init("resources/cornell.obj", &shaders)) return false;
-    //scenes.push_back(cornell);
+    Scene* cornell = new Scene();
+    if(!cornell->Init(MODEL_PATH("cornell.obj"), &shaders)) return false;
+    scenes.push_back(cornell);
 
-    Scene *sponza = new Scene();
-    if (!sponza->Init("resources/sponza.obj", &shaders)) return false;
-    scenes.push_back(sponza);
+//    Scene *sponza = new Scene();
+//    if (!sponza->Init(MODEL_PATH("sponza.obj"), &shaders)) return false;
+//    scenes.push_back(sponza);
 
     // Initial Voxelization of the scenes
-    //cornell->CreateShadow();
-    //cornell->RenderData();
-    //cornell->Voxelize();
-    //cornell->MipMap();
+//    cornell->CreateShadow();
+//    cornell->RenderData();
+//    cornell->Voxelize();
+//    cornell->MipMap();
 
-    sponza->CreateShadow();
-    sponza->RenderData();
-    sponza->Voxelize();
-    sponza->MipMap();
+//    sponza->CreateShadow();
+//    sponza->RenderData();
+//    sponza->Voxelize();
+//    sponza->MipMap();
 
     return true;
 }
@@ -212,10 +229,10 @@ void Program::Update() {
 void Program::Render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    GetCurrentScene()->CreateShadow();
-    GetCurrentScene()->RenderData();
-    GetCurrentScene()->Voxelize();
-    GetCurrentScene()->MipMap();
+//    GetCurrentScene()->CreateShadow();
+//    GetCurrentScene()->RenderData();
+//    GetCurrentScene()->Voxelize();
+//    GetCurrentScene()->MipMap();
     GetCurrentScene()->Draw();
 }
 

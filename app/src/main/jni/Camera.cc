@@ -22,8 +22,8 @@ Camera::Camera(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight, GLfl
 
     mspeed = 10.0f;
     rspeed = 0.001f;
-    phi = 2 * M_PI / 2.0f;
-    theta = M_PI / 2.0f;
+    phi = 2.0f * (float)M_PI / 2.0f;
+    theta = (float)M_PI / 2.0f;
 
     frustumFar = farInit;
 
@@ -48,8 +48,8 @@ bool Camera::Init() {
 void Camera::ResetCamera(glm::vec3 pos) {
     param.position = pos;
 
-    phi = 7 * M_PI / 4;
-    theta = M_PI / 2.0f;
+    phi = 7.0f * (float)M_PI / 4.0f;
+    theta = (float)M_PI / 2.0f;
 }
 
 void Camera::SetFrustum() {
@@ -115,8 +115,8 @@ void Camera::RotateCamera(GLint dx, GLint dy) {
         phi += rspeed * dx;
         theta += rspeed * dy;
 
-        phi = fmod(phi, 2.0f * M_PI);
-        theta = theta < M_PI - eps ? (theta > eps ? theta : eps) : M_PI - eps;
+        phi = (float)fmod(phi, 2.0f * (float)M_PI);
+        theta = theta < (float)M_PI - eps ? (theta > eps ? theta : eps) : (float)M_PI - eps;
         needUpdate = true;
     }
 }
