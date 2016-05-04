@@ -14,6 +14,7 @@
 #include "Scene.h"
 
 #include "GL_utilities.h"
+#include "../../../../../../../../Android/android-sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include/android/asset_manager.h"
 
 struct ProgramStruct {
     GLfloat currentT;
@@ -53,6 +54,7 @@ public:
     Program();
     ~Program();
 
+    void SetAssetMgr(AAssetManager *mgr);
     bool Init();
     void Resize(int width, int height);
     void Step();
@@ -67,6 +69,7 @@ public:
     void Render();
 
     void Clean();
+
 };
 
 #endif // PROGRAM_H

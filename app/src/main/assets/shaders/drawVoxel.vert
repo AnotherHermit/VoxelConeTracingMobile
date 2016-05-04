@@ -1,11 +1,4 @@
-///////////////////////////////////////
-//
-//	Computer Graphics TSBK03
-//	Conrad Wahlén - conwa099
-//
-///////////////////////////////////////
-
-#version 430
+#version 310 es
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
@@ -15,7 +8,7 @@ out vec4 outPosition;
 out vec3 outNormal;
 out vec4 outColor;
 
-layout(location = 4) uniform usampler3D voxelData;
+layout(location = 4) uniform highp usampler3D voxelData;
 
 struct Camera {
 	mat4 WTVmatrix;
@@ -55,11 +48,11 @@ VoxelData unpackARGB8(uint bytesIn) {
 	uvec3 uiColor;
 
 	// Put a first to improve max operation but it should not be very noticable
-	data.light = (bytesIn & 0xF0000000) >> 28;
-	data.count = (bytesIn & 0x0F000000) >> 24;
-	uiColor.r =  (bytesIn & 0x00FF0000) >> 16;
-	uiColor.g =  (bytesIn & 0x0000FF00) >> 8;
-	uiColor.b =  (bytesIn & 0x000000FF);
+	data.light = (bytesIn & uint(0xF0000000)) >> 28;
+	data.count = (bytesIn & uint(0x0F000000)) >> 24;
+	uiColor.r =  (bytesIn & uint(0x00FF0000)) >> 16;
+	uiColor.g =  (bytesIn & uint(0x0000FF00)) >> 8;
+	uiColor.b =  (bytesIn & uint(0x000000FF));
 
 	data.color.rgb = vec3(uiColor) / float(data.count) / 31.0f;
 	data.color.a = 1.0f;
@@ -70,9 +63,9 @@ VoxelData unpackARGB8(uint bytesIn) {
 uvec3 unpackRG11B10(uint bytesIn) {
 	uvec3 outVec;
 
-	outVec.r = (bytesIn & 0xFFE00000) >> 21;
-	outVec.g = (bytesIn & 0x001FFC00) >> 10;
-	outVec.b = (bytesIn & 0x000003FF);
+	outVec.r = (bytesIn & uint(0xFFE00000)) >> 21;
+	outVec.g = (bytesIn & uint(0x001FFC00)) >> 10;
+	outVec.b = (bytesIn & uint(0x000003FF));
 
 	return outVec;
 }
@@ -83,7 +76,7 @@ void main(void)
 	vec3 voxelPos = vec3(unpackRG11B10(inVoxelPos)) / size;
 
 	VoxelData data = unpackARGB8(textureLod(voxelData, voxelPos, float(scene.mipLevel)).r);
-	data.color.rgb *= float(sign(data.light));
+	data.color.rgb *= float(sign(int(data.light)));
 	outColor = data.color;
 	
 	outNormal = mat3(cam.WTVmatrix) * inNormal;

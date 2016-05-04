@@ -1,11 +1,8 @@
-///////////////////////////////////////
-//
-//	Computer Graphics TSBK03
-//	Conrad Wahlén - conwa099
-//
-///////////////////////////////////////
+#version 310 es
+#extension GL_OES_shader_image_atomic : enable
 
-#version 430
+precision highp float;
+precision highp int;
 
 in vec2 intTexCoords;
 in vec4 shadowCoord;
@@ -16,9 +13,10 @@ flat in uint domInd;
 layout(location = 0) uniform vec3 diffColor;
 layout(location = 1) uniform sampler2D diffuseUnit;
 
-layout(location = 3) uniform layout(r32ui) uimage2DArray voxelTextures;
-layout(location = 4) uniform layout(r32ui) uimage3D voxelData;
+layout(location = 3) uniform layout(r32ui) highp uimage2DArray voxelTextures;
+layout(location = 4) uniform layout(r32ui) highp uimage3D voxelData;
 layout(location = 6) uniform sampler2D shadowMap;
+layout(location = 10) uniform int colorPicker;
 
 struct SceneParams {
 	mat4 MTOmatrix[3];
@@ -70,70 +68,81 @@ struct VoxelData {
 };
 
 uint packARGB8(VoxelData dataIn) {
-	uint result = 0;
+	uint result = uint(0);
 
 	uvec3 uiColor = uvec3(dataIn.color.rgb * 31.0f * float(dataIn.count));
 
-	result |= (dataIn.light & 0x0F) << 28;
-	result |= (dataIn.count & 0x0F) << 24;
-	result |= (uiColor.r & 0xFF) << 16;
-	result |= (uiColor.g & 0xFF) << 8;
-	result |= (uiColor.b & 0xFF);
+	result |= (dataIn.light & uint(0x0F)) << 28;
+	result |= (dataIn.count & uint(0x0F)) << 24;
+	result |= (uiColor.r & uint(0xFF)) << 16;
+	result |= (uiColor.g & uint(0xFF)) << 8;
+	result |= (uiColor.b & uint(0xFF));
 
 	return result;
 }
 
 uint packRG11B10(uvec3 dataIn) {
-	uint result = 0;
+	uint result = uint(0);
 
-	result |= (dataIn.r & 0x7FF) << 21;
-	result |= (dataIn.g & 0x7FF) << 10;
-	result |= (dataIn.b & 0x3FF);
+	result |= (dataIn.r & uint(0x7FF)) << 21;
+	result |= (dataIn.g & uint(0x7FF)) << 10;
+	result |= (dataIn.b & uint(0x3FF));
 
 	return result;
 }
 
-subroutine vec4 SampleColor();
+//subroutine vec4 SampleColor();
 
-layout(index = 0) subroutine(SampleColor) 
+//layout(index = 0) subroutine(SampleColor)
 vec4 DiffuseColor() {
 	return vec4(diffColor, 1.0f);
 }
 
-layout(index = 1) subroutine(SampleColor)
+//layout(index = 1) subroutine(SampleColor)
 vec4 TextureColor() {
 	return vec4(texture(diffuseUnit, intTexCoords).rgb, 1.0f);
 }
 
-layout(location = 0) subroutine uniform SampleColor GetColor;
+//layout(location = 0) subroutine uniform SampleColor GetColor;
+
+vec4 GetColor() {
+    switch(colorPicker) {
+        case 0: return DiffuseColor();
+        case 1: return TextureColor();
+        default: return vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    }
+    return vec4(1.0f, 0.0f, 0.0f, 1.0f);
+}
 
 void main()
 {	
 	// Set constant color for textured models
-	VoxelData data = VoxelData(GetColor(), 0x0, 0x8);
+	VoxelData data = VoxelData(GetColor(), uint(0x0), uint(0x8));
 
 	ivec3 voxelCoord;
-	int depthCoord = int(gl_FragCoord.z * scene.voxelRes);
+	float res = float(scene.voxelRes);
+	int depthCoord = int(gl_FragCoord.z * res);
 
-	if(domInd == 0) {
-		voxelCoord = ivec3(depthCoord, gl_FragCoord.y, scene.voxelRes - gl_FragCoord.x);
-	} else if (domInd == 1) {
-		voxelCoord = ivec3(gl_FragCoord.x, depthCoord, scene.voxelRes - gl_FragCoord.y);
+
+	if(domInd == uint(0)) {
+		voxelCoord = ivec3(depthCoord, gl_FragCoord.y, res - gl_FragCoord.x);
+	} else if (domInd == uint(1)) {
+		voxelCoord = ivec3(gl_FragCoord.x, depthCoord, res - gl_FragCoord.y);
 	} else {
 		voxelCoord = ivec3(gl_FragCoord.x, gl_FragCoord.y, depthCoord);
 	}
 
 	// Calculate shadows
-	vec3 lightCoord = shadowCoord.xyz / 2;
+	vec3 lightCoord = shadowCoord.xyz / 2.0f;
 	lightCoord += vec3(0.5f);
 
 	float shadowDepth = texture(shadowMap, lightCoord.xy).r;
 	float cosTheta = clamp(dot(normalize(exNormal), normalize(scene.lightDir)), 0.0f, 1.0f);
-	float bias = 0.005*tan(acos(cosTheta));
+	float bias = 0.005f*tan(acos(cosTheta));
 	bias = clamp(bias, 0.0f, 0.01f);
 
 	if(shadowDepth > lightCoord.z - bias) {
-		data.light = 0x8;
+		data.light = uint(0x8);
 	}
 
 	uint outData = packARGB8(data);
@@ -142,12 +151,12 @@ void main()
 	uint prevData = imageAtomicMax(voxelData, voxelCoord, outData);
 
 	// Check if this voxel was empty before
-	if(prevData == 0) {
+	if(prevData == uint(0)) {
 		// Write to number of voxels list
-		uint nextIndex = atomicAdd(drawCmd[0].instanceCount, 1);
+		uint nextIndex = atomicAdd(drawCmd[0].instanceCount, uint(1));
 		
 		// Calculate and store number of workgroups needed
-		uint compWorkGroups = ((nextIndex + 1) >> 6) + 1; // 6 = log2(workGroupSize = 64)
+		uint compWorkGroups = ((nextIndex + uint(1)) >> 6) + uint(1); // 6 = log2(workGroupSize = 64)
 		atomicMax(compCmd[0].workGroupSizeX, compWorkGroups);
 
 		// Write to position buffer

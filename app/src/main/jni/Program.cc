@@ -6,6 +6,7 @@
 ///////////////////////////////////////
 
 #include "Program.h"
+#include "../../../../../../../../Android/android-sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include/android/asset_manager.h"
 
 
 Program::Program() {
@@ -15,9 +16,6 @@ Program::Program() {
     // Window init size
     winWidth = 0;
     winHeight = 0;
-
-    // Start state
-    isRunning = true;
 
     // Time init
     time.startTimer();
@@ -36,11 +34,15 @@ Program::~Program() {
 }
 
 void Program::Step() {
+    LOGD("Step called");
+
     Update();
     Render();
 }
 
 void Program::Resize(int width, int height) {
+    LOGD("Resize called");
+
     winWidth = width;
     winHeight = height;
     glViewport(0,0,width,height);
@@ -113,6 +115,7 @@ void APIENTRY openglCallbackFunction(
 }*/
 
 bool Program::Init() {
+    LOGD("Init called");
 
 /*
 #ifdef DEBUG
@@ -126,18 +129,19 @@ bool Program::Init() {
     // Activate depth test and blend for masking textures
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glEnable(GL_TEXTURE_3D);
+    //glEnable(GL_TEXTURE_3D);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.2f, 0.2f, 0.4f, 1.0f);
 
     dumpInfo();
 
-    printError("after wrapper inits");
-
     glGenBuffers(1, &programBuffer);
     glBindBufferBase(GL_UNIFORM_BUFFER, PROGRAM, programBuffer);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(ProgramStruct), &param, GL_STREAM_DRAW);
+
+    printError("Init program buffer");
+
 
     // Load shaders for drawing
     shaders.drawScene = loadShaders(SHADER_PATH("drawModel.vert"), SHADER_PATH("drawModel.frag"));
@@ -161,18 +165,26 @@ bool Program::Init() {
     // Create shadowmap
     shaders.shadowMap = loadShaders(SHADER_PATH("shadowMap.vert"), SHADER_PATH("shadowMap.frag"));
 
+    printError("Load shaders");
+
     // TODO: Make this a separate function
     // Set constant uniforms for the drawing programs
     glUseProgram(shaders.drawScene);
     glUniform1i(DIFF_UNIT, 0);
     glUniform1i(MASK_UNIT, 1);
+    printError("Set drawScene Constants");
 
     // Set constant uniforms for voxel programs
     glUseProgram(shaders.voxelize);
+    printError("Set voxelize Program");
     glUniform1i(DIFF_UNIT, 0);
+    printError("Set voxelize Constants 1");
     glUniform1i(VOXEL_TEXTURE, 2);
+    printError("Set voxelize Constants 2");
     glUniform1i(VOXEL_DATA, 3);
+    printError("Set voxelize Constants 3");
     glUniform1i(SHADOW_UNIT, 5);
+    printError("Set voxelize Constants 4");
 
     // Set constant uniforms for simple triangle drawing
     glUseProgram(shaders.singleTriangle);
@@ -181,24 +193,41 @@ bool Program::Init() {
     glUniform1i(SHADOW_UNIT, 5);
     glUniform1i(SCENE_UNIT, 6);
     glUniform1i(SCENE_DEPTH, 7);
+    printError("Set singleTriangle Constants");
 
     // Set constant uniforms for drawing the voxel overlay
     glUseProgram(shaders.voxel);
     glUniform1i(VOXEL_DATA, 3);
+    printError("Set voxel Constants");
 
     // Set constant uniforms for calculating mipmaps
     glUseProgram(shaders.mipmap);
+    printError("Set mipmap Program");
     glUniform1i(VOXEL_DATA, 3);
+    printError("Set mipmap Constants 1");
     glUniform1i(VOXEL_DATA_NEXT, 4);
+    printError("Set mipmap Constants 2");
+
 
     // Set up the camera
     cam = new Camera(cameraStartPos, &winWidth, &winHeight, cameraFrustumFar);
-    if (!cam->Init()) return false;
+    if (!cam->Init()) {
+        LOGE("Camera not initialized!");
+        return false;
+    }
+
+    printError("Init Camera");
 
     // Load scenes
     Scene* cornell = new Scene();
-    if(!cornell->Init(MODEL_PATH("cornell.obj"), &shaders)) return false;
+    if(!cornell->Init(MODEL_PATH("cornell.obj"), &shaders)){
+        LOGE("Error loading scene: Cornell!");
+        return false;
+    }
     scenes.push_back(cornell);
+
+    printError("Init Scene Cornell");
+
 
 //    Scene *sponza = new Scene();
 //    if (!sponza->Init(MODEL_PATH("sponza.obj"), &shaders)) return false;
@@ -333,3 +362,7 @@ void Program::CheckKeyDowns() {
 		cam->MoveUp(-param.deltaT);
 	}
 }*/
+
+void Program::SetAssetMgr(AAssetManager *mgr) {
+    SetAssetsManager(mgr);
+}

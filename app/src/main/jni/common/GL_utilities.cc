@@ -17,48 +17,49 @@
 #include <iostream>
 #include "GL_utilities.h"
 
+
+AAssetManager* mgr;
+
+void SetAssetsManager(AAssetManager* initMgr) {
+    mgr = initMgr;
+}
+
 // Shader loader
 
 char *readFile(const char *file) {
-    FILE *fptr;
     size_t length;
     char *buf;
+    AAsset* asset;
 
-    if (file == NULL) {
+     if (file == NULL) {
         return NULL;
     }
 
-    fptr = fopen(file, "rb"); /* Open file for reading */
-    if (!fptr) {
-        fprintf(stderr, "Could not open file: %s!\n", file);
-        return NULL;/* Return NULL on failure */
+    asset = AAssetManager_open(mgr, file, AASSET_MODE_STREAMING);
+
+    if (!asset) {
+        LOGE("Could not open file: %s!\n", file);
+        return NULL;// Return NULL on failure
     }
 
-    int temp = fseek(fptr, 0, SEEK_END); /* Seek to the end of the file */
-    if (temp != 0) {
-        fprintf(stderr, "Could not seek to end of file!\n");
-        return NULL;
-    }
-
-    length = (size_t)ftell(fptr); /* Find out how many bytes into the file we are */
+    length = (size_t)AAsset_getLength(asset);
     if (length < 0) {
-        fprintf(stderr, "ftell reported negative length!\n");
+        LOGE("ftell reported negative length!\n");
         return NULL;
     }
 
     buf = (char *) malloc(length +
-                          1); /* Allocate a buffer for the entire length of the file and a null terminator */
+                          1); // Allocate a buffer for the entire length of the file and a null terminator
     if (buf == NULL) {
-        fprintf(stderr, "Could not allocate space for readFile buffer!\n");
+        LOGE("Could not allocate space for readFile buffer!\n");
         return NULL;
     }
 
-    fseek(fptr, 0, SEEK_SET); /* Go back to the beginning of the file */
-    fread(buf, length, 1, fptr); /* Read the contents of the file in to the buffer */
-    fclose(fptr); /* Close the file */
-    buf[length] = 0; /* Null terminator */
+    AAsset_read(asset, buf, length); // Read the contents of the file in to the buffer
+    AAsset_close(asset); // Close the file
+    buf[length] = 0; // Null terminator
 
-    return buf; /* Return the buffer */
+    return buf; // Return the buffer
 }
 
 // Infolog: Show result of shader compilation
@@ -72,10 +73,10 @@ GLint printShaderInfoLog(GLuint obj, const char *fn) {
     glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &infologLength);
 
     if (infologLength > 2) {
-        fprintf(stderr, "[From %s:]\n", fn);
+        LOGE("[From %s:]\n", fn);
         infoLog = (char *) malloc((size_t)infologLength);
         glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog);
-        fprintf(stderr, "%s\n", infoLog);
+        LOGE("%s\n", infoLog);
         free(infoLog);
         wasError = 1;
     }
@@ -94,18 +95,18 @@ GLint printProgramInfoLog(GLuint obj, const char *vfn, const char *ffn,
     glGetProgramiv(obj, GL_INFO_LOG_LENGTH, &infologLength);
 
     if (infologLength > 2) {
-        fprintf(stderr, "[From %s", vfn);
+        LOGE("[From %s", vfn);
         if (ffn != NULL)
-            fprintf(stderr, "+%s", ffn);
+            LOGE("+%s", ffn);
         if (gfn != NULL)
-            fprintf(stderr, "+%s", gfn);
+            LOGE("+%s", gfn);
         if (tcfn != NULL && tefn != NULL)
-            fprintf(stderr, "+%s+%s", tcfn, tefn);
-        fprintf(stderr, ":]\n");
+            LOGE("+%s+%s", tcfn, tefn);
+        LOGE(":]\n");
 
         infoLog = (char *) malloc((size_t)infologLength);
         glGetProgramInfoLog(obj, infologLength, &charsWritten, infoLog);
-        fprintf(stderr, "%s\n", infoLog);
+        LOGE("%s\n", infoLog);
         free(infoLog);
 
         wasError = 1;
@@ -204,15 +205,15 @@ GLuint loadShadersGT(const char *vertFileName, const char *fragFileName, const c
     tcs = readFile((char *) tcFileName);
     tes = readFile((char *) teFileName);
     if (vs == NULL)
-        fprintf(stderr, "Failed to read %s from disk.\n", vertFileName);
+        LOGE("Failed to read %s from disk.\n", vertFileName);
     if ((fs == NULL) && (fragFileName != NULL))
-        fprintf(stderr, "Failed to read %s from disk.\n", fragFileName);
+        LOGE("Failed to read %s from disk.\n", fragFileName);
     if ((gs == NULL) && (geomFileName != NULL))
-        fprintf(stderr, "Failed to read %s from disk.\n", geomFileName);
+        LOGE("Failed to read %s from disk.\n", geomFileName);
     if ((tcs == NULL) && (tcFileName != NULL))
-        fprintf(stderr, "Failed to read %s from disk.\n", tcFileName);
+        LOGE("Failed to read %s from disk.\n", tcFileName);
     if ((tes == NULL) && (teFileName != NULL))
-        fprintf(stderr, "Failed to read %s from disk.\n", teFileName);
+        LOGE("Failed to read %s from disk.\n", teFileName);
     if (vs != NULL)
         p = compileShaders(vs, fs, gs, tcs, tes, vertFileName, fragFileName, geomFileName,
                            tcFileName, teFileName);
@@ -251,15 +252,40 @@ GLuint CompileComputeShader(const char *compFileName) {
 // End of Shader loader
 
 void dumpInfo(void) {
-    printf("Vendor: %s\n", glGetString(GL_VENDOR));
-    printf("Renderer: %s\n", glGetString(GL_RENDERER));
-    printf("Version: %s\n", glGetString(GL_VERSION));
-    printf("GLSL: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    LOGI("Vendor: %s\n", glGetString(GL_VENDOR));
+    LOGI("Renderer: %s\n", glGetString(GL_RENDERER));
+    LOGI("Version: %s\n", glGetString(GL_VERSION));
+    LOGI("GLSL: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    LOGI("Extensions: %s\n", glGetString(GL_EXTENSIONS));
     printError("dumpInfo");
 }
 
 static GLenum lastError = 0;
 static char lastErrorFunction[1024] = "";
+
+
+const char* getGLErrorMsg(GLenum error) {
+    switch (error) {
+        case 0:
+            return "NO_ERROR";
+        case 0x0500:
+            return "INVALID_ENUM";
+        case 0x0501:
+            return "INVALID_VALUE";
+        case 0x0502:
+            return "INVALID_OPERATION";
+        case 0x0503:
+            return "STACK_OVERFLOW";
+        case 0x0504:
+            return "STACK_UNDERFLOW";
+        case 0x0505:
+            return "OUT_OF_MEMORY";
+        case 0x0506:
+            return "INVALID_FRAMEBUFFER_OPERATION";
+        default:
+            return "UNKNOWN";
+    }
+}
 
 /* report GL errors, if any, to stderr */
 GLint printError(const char *functionName) {
@@ -267,7 +293,7 @@ GLint printError(const char *functionName) {
     GLint wasError = 0;
     while ((error = glGetError()) != GL_NO_ERROR) {
         if ((lastError != error) || (strcmp(functionName, lastErrorFunction))) {
-            fprintf(stderr, "GL error 0x%X detected in %s\n", error, functionName);
+            LOGE("GL error %s detected in %s\n", getGLErrorMsg(error), functionName);
             strcpy(lastErrorFunction, functionName);
             lastError = error;
             wasError = 1;
@@ -326,7 +352,7 @@ void CHECK_FRAMEBUFFER_STATUS() {
     GLenum status;
     status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
-        fprintf(stderr, "Framebuffer not complete\n");
+        LOGE("Framebuffer not complete\n");
 }
 
 // create FBO
@@ -335,7 +361,7 @@ FBOstruct *initFBO(int width, int height, int int_method) {
     FBOstruct *fbo = (FBOstruct *) malloc(sizeof(FBOstruct));
 
     if (fbo == NULL) {
-        fprintf(stderr, "initFBO could not allocate memory for FBO!\n");
+        LOGE("initFBO could not allocate memory for FBO!\n");
         return NULL;
     }
 
@@ -346,7 +372,7 @@ FBOstruct *initFBO(int width, int height, int int_method) {
     glGenFramebuffers(1, &fbo->fb); // frame buffer id
     glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
     glGenTextures(1, &fbo->texid);
-    fprintf(stderr, "%u \n", fbo->texid);
+    LOGE("%u \n", fbo->texid);
     glBindTexture(GL_TEXTURE_2D, fbo->texid);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -368,7 +394,7 @@ FBOstruct *initFBO(int width, int height, int int_method) {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo->rb);
     CHECK_FRAMEBUFFER_STATUS();
 
-    fprintf(stderr, "Framebuffer object %u\n", fbo->fb);
+    LOGE("Framebuffer object %u\n", fbo->fb);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return fbo;
 }
@@ -379,7 +405,7 @@ FBOstruct *initFBO2(int width, int height, int int_method, int create_depthimage
     FBOstruct *fbo = (FBOstruct *) malloc(sizeof(FBOstruct));
 
     if (fbo == NULL) {
-        fprintf(stderr, "initFBO could not allocate memory for FBO!\n");
+        LOGE("initFBO could not allocate memory for FBO!\n");
         return NULL;
     }
 
@@ -391,7 +417,7 @@ FBOstruct *initFBO2(int width, int height, int int_method, int create_depthimage
     glGenFramebuffers(1, &fbo->fb); // frame buffer id
     glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
     glGenTextures(1, &fbo->texid);
-    fprintf(stderr, "%u \n", fbo->texid);
+    LOGE("%u \n", fbo->texid);
     glBindTexture(GL_TEXTURE_2D, fbo->texid);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -416,7 +442,7 @@ FBOstruct *initFBO2(int width, int height, int int_method, int create_depthimage
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbo->depth, 0);
-        fprintf(stderr, "depthtexture: %u", fbo->depth);
+        LOGE("depthtexture: %u", fbo->depth);
     }
 
     // Renderbuffer
@@ -424,7 +450,7 @@ FBOstruct *initFBO2(int width, int height, int int_method, int create_depthimage
     glBindRenderbuffer(GL_RENDERBUFFER, fbo->rb);
     CHECK_FRAMEBUFFER_STATUS();
 
-    fprintf(stderr, "Framebuffer object %u\n", fbo->fb);
+    LOGE("Framebuffer object %u\n", fbo->fb);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return fbo;
 }

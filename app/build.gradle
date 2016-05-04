@@ -1,5 +1,7 @@
 apply plugin: 'com.android.model.application'
 
+def ndkDir = System.getenv("ANDROID_NDK_HOME")
+
 model {
     android {
         compileSdkVersion = 23
@@ -7,17 +9,17 @@ model {
 
         defaultConfig {
             applicationId = 'se.anotherhermit.voxels'
-            minSdkVersion.apiLevel    = 21
+            minSdkVersion.apiLevel    = 23
             targetSdkVersion.apiLevel = 23
         }
         ndk {
-            moduleName  = 'gles3jni'
+            moduleName  = 'NativeGlue'
             toolchain = 'clang'
             stl         = 'gnustl_static'
             cppFlags.addAll(['-std=c++11', '-Wall', '-fno-rtti', '-fno-exceptions'])
             cppFlags.addAll(['-I' + file('src/main/jni/common')])
             CFlags.addAll(['-Wall'])
-            ldLibs.addAll(['log','GLESv3', 'EGL'])
+            ldLibs.addAll(['log','GLESv3', 'EGL','android'])
         }
         // Turn on hard float support in armeabi-v7a
         abis {

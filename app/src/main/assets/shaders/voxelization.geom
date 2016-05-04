@@ -1,11 +1,5 @@
-///////////////////////////////////////
-//
-//	Computer Graphics TSBK07
-//	Conrad Wahlén - conwa099
-//
-///////////////////////////////////////
-
-#version 430
+#version 310 es
+#extension GL_EXT_geometry_shader : enable
 
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
@@ -45,7 +39,7 @@ void main()
 	vec3 dir = abs(CalculateNormal(gl_in[0].gl_Position.xyz, gl_in[1].gl_Position.xyz, gl_in[2].gl_Position.xyz));
 	exNormal = dir;
 	float maxComponent = max(dir.x, max(dir.y, dir.z));
-	uint ind = maxComponent == dir.x ? 0 : maxComponent == dir.y ? 1 : 2;
+	uint ind = maxComponent == dir.x ? uint(0) : maxComponent == dir.y ? uint(1) : uint(2);
 	domInd = ind;
 
 	gl_Position = scene.MTOmatrix[ind] * gl_in[0].gl_Position;

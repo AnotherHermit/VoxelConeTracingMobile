@@ -1,11 +1,7 @@
-///////////////////////////////////////
-//
-//	Computer Graphics TSBK03
-//	Conrad Wahlén - conwa099
-//
-///////////////////////////////////////
+#version 310 es
+#extension GL_OES_shader_image_atomic : enable
 
-#version 430
+precision highp uimage3D;
 
 layout(local_size_x = 64) in;
 
@@ -68,11 +64,11 @@ VoxelData unpackARGB8(uint bytesIn) {
 	uvec3 uiColor;
 
 	// Put a first to improve max operation but it should not be very noticable
-	data.light = (bytesIn & 0xF0000000) >> 28;
-	data.count = (bytesIn & 0x0F000000) >> 24;
-	uiColor.r =  (bytesIn & 0x00FF0000) >> 16;
-	uiColor.g =  (bytesIn & 0x0000FF00) >> 8;
-	uiColor.b =  (bytesIn & 0x000000FF);
+	data.light = (bytesIn & uint(0xF0000000)) >> 28;
+	data.count = (bytesIn & uint(0x0F000000)) >> 24;
+	uiColor.r =  (bytesIn & uint(0x00FF0000)) >> 16;
+	uiColor.g =  (bytesIn & uint(0x0000FF00)) >> 8;
+	uiColor.b =  (bytesIn & uint(0x000000FF));
 
 	data.color.rgb = vec3(uiColor) / float(data.count) / 31.0f;
 	data.color.a = 1.0f;
@@ -81,25 +77,25 @@ VoxelData unpackARGB8(uint bytesIn) {
 }
 
 uint packARGB8(VoxelData dataIn) {
-	uint result = 0;
+	uint result = uint(0);
 
 	uvec3 uiColor = uvec3(dataIn.color.rgb * 31.0f * float(dataIn.count));
 
-	result |= (dataIn.light & 0xF) << 28;
-	result |= (dataIn.count & 0xF) << 24;
-	result |= (uiColor.r & 0xFF) << 16;
-	result |= (uiColor.g & 0xFF) << 8;
-	result |= (uiColor.b & 0xFF);
+	result |= (dataIn.light & uint(0xF)) << 28;
+	result |= (dataIn.count & uint(0xF)) << 24;
+	result |= (uiColor.r & uint(0xFF)) << 16;
+	result |= (uiColor.g & uint(0xFF)) << 8;
+	result |= (uiColor.b & uint(0xFF));
 
 	return result;
 }
 
 uint packRG11B10(uvec3 dataIn) {
-	uint result = 0;
+	uint result = uint(0);
 
-	result |= (dataIn.r & 0x7FF) << 21;
-	result |= (dataIn.g & 0x7FF) << 10;
-	result |= (dataIn.b & 0x3FF);
+	result |= (dataIn.r & uint(0x7FF)) << 21;
+	result |= (dataIn.g & uint(0x7FF)) << 10;
+	result |= (dataIn.b & uint(0x3FF));
 
 	return result;
 }
@@ -107,9 +103,9 @@ uint packRG11B10(uvec3 dataIn) {
 uvec3 unpackRG11B10(uint bytesIn) {
 	uvec3 outVec;
 
-	outVec.r = (bytesIn & 0xFFE00000) >> 21;
-	outVec.g = (bytesIn & 0x001FFC00) >> 10;
-	outVec.b = (bytesIn & 0x000003FF);
+	outVec.r = (bytesIn & uint(0xFFE00000)) >> 21;
+	outVec.g = (bytesIn & uint(0x001FFC00)) >> 10;
+	outVec.b = (bytesIn & uint(0x000003FF));
 
 	return outVec;
 }
@@ -127,24 +123,24 @@ void main(void)
 		VoxelData data = unpackARGB8(imageLoad(voxelData, ivec3(voxelCoord)).r);
 		
 		// Normalize the light counter
-		data.light = (data.light > (data.count >> 1)) ? 1 : 0;
+		data.light = (data.light > (data.count >> 1)) ? uint(1) : uint(0);
 
 		// Reset the counter
-		data.count = 1;
+		data.count = uint(1);
 
-		uint nextLevel = currentLevel + 1;
+		uint nextLevel = currentLevel + uint(1);
 		uint nextOffset = drawCmd[nextLevel].baseInstance;
 		uvec3 nextVoxelCoord = voxelCoord >> 1;
 
 		uint prevData = imageAtomicAdd(voxelDataNextLevel, ivec3(nextVoxelCoord), packARGB8(data));
 
 		// Check if this voxel was empty before
-		if(prevData == 0) {
+		if(prevData == uint(0)) {
 			// Write to number of voxels list
-			uint nextIndex = atomicAdd(drawCmd[nextLevel].instanceCount, 1);
+			uint nextIndex = atomicAdd(drawCmd[nextLevel].instanceCount, uint(1));
 
 			// Calculate and store number of workgroups needed
-			uint compWorkGroups = ((nextIndex + 1) >> 6) + 1; // 6 = log2(workGroupSize = 64)
+			uint compWorkGroups = ((nextIndex + uint(1)) >> 6) + uint(1); // 6 = log2(workGroupSize = 64)
 			atomicMax(compCmd[nextLevel].workGroupSizeX, compWorkGroups);
 
 			// Write to position buffer

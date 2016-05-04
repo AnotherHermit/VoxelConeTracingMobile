@@ -1,11 +1,4 @@
-///////////////////////////////////////
-//
-//	Computer Graphics TSBK03
-//	Conrad Wahlén - conwa099
-//
-///////////////////////////////////////
-
-#version 430
+#version 310 es
 
 out vec2 exTexCoords;
  

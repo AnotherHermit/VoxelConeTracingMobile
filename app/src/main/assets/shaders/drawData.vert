@@ -1,11 +1,4 @@
-///////////////////////////////////////
-//
-//	Computer Graphics TSBK03
-//	Conrad Wahlén - conwa099
-//
-///////////////////////////////////////
-
-#version 430
+#version 310 es
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
@@ -54,7 +47,7 @@ void main(void)
 		
 	vec4 temp = scene.MTOmatrix[2] * vec4(inPosition, 1.0f);
 	
-	temp.xyz /= 2;
+	temp.xyz /= 2.0f;
 	temp.xyz += vec3(0.5f);
 
 	exPosition = temp;
