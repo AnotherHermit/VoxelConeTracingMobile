@@ -3,16 +3,16 @@
 precision highp float;
 precision highp int;
 
-in vec3 exNormal;
+//in vec3 exNormal;
 in vec4 exPosition;
 in vec2 exTexCoords;
-in vec3 exTangent;
-in vec3 exBiTangent;
+//in vec3 exTangent;
+//in vec3 exBiTangent;
 
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec4 outPosition;
-layout(location = 2) out vec4 outNormal;
-layout(location = 3) out vec4 outTangent;
+//layout(location = 0) out vec4 outColor;
+///*layout(location = 0) */out vec4 outPosition;
+//layout(location = 2) out vec4 outNormal;
+//layout(location = 3) out vec4 outTangent;
 // TODO: Maximum value is 3, need to fix depenencies
 //layout(location = 4) out vec4 outBiTangent;
 
@@ -52,9 +52,9 @@ vec4 GetColor() {
 
 void main()
 {	
-	outNormal = vec4(normalize(exNormal), 1.0f);
-	outTangent = vec4(normalize(exTangent), 1.0f);
-	//outBiTangent = vec4(normalize(exBiTangent), 1.0f);
-	outPosition = exPosition / exPosition.w;
-	outColor = GetColor();
+//	outNormal = vec4(normalize(exNormal), 1.0f);
+//	outTangent = vec4(normalize(exTangent), 1.0f);
+//	outBiTangent = vec4(normalize(exBiTangent), 1.0f);
+//	outPosition = exPosition / exPosition.w;
+//	outColor = GetColor();
 }

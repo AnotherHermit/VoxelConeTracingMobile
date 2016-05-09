@@ -3,6 +3,7 @@ package se.anotherhermit.voxels;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.opengl.GLSurfaceView;
+import android.os.Environment;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -21,6 +22,7 @@ public class GLESView extends GLSurfaceView {
         setEGLConfigChooser(8, 8, 8, 0, 16, 0);
         setEGLContextClientVersion(2);
         setRenderer(new Renderer(mgr));
+        String path = Environment.getExternalStorageDirectory().getPath();
         setRenderMode(RENDERMODE_CONTINUOUSLY);
     }
 

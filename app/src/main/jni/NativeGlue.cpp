@@ -21,7 +21,6 @@ Java_se_anotherhermit_voxels_GLESView_init(JNIEnv *env, jobject obj, jobject ass
         program = NULL;
     }
 
-
     const char *versionStr = (const char *) glGetString(GL_VERSION);
     if (strstr(versionStr, "OpenGL ES 3.")) {
         program = new Program();

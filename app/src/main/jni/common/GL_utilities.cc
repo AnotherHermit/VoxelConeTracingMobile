@@ -24,6 +24,34 @@ void SetAssetsManager(AAssetManager* initMgr) {
     mgr = initMgr;
 }
 
+// Load asset folder to file
+
+void LoadAssetFolder(const char* folderName) {
+    AAssetDir* assetDir = AAssetManager_openDir(mgr, folderName);
+    const char* filename;
+    char* buf;
+    size_t length;
+    char completePath[256];
+    char externalPath[256];
+
+    while((filename = AAssetDir_getNextFileName(assetDir)) != NULL) {
+        snprintf(completePath, sizeof(completePath), "%s/%s",folderName, filename);
+        AAsset* asset = AAssetManager_open(mgr, completePath, AASSET_MODE_STREAMING);
+        length = (size_t)AAsset_getLength(asset);
+        buf = (char *) malloc(length);
+        AAsset_read(asset, buf, length);
+
+        snprintf(externalPath, sizeof(externalPath), MODEL_PATH("%s"), filename);
+        FILE* out = fopen(externalPath, "w");
+        fwrite(buf, length, 1, out);
+        fclose(out);
+
+        AAsset_close(asset);
+    }
+
+    AAssetDir_close(assetDir);
+}
+
 // Shader loader
 
 char *readFile(const char *file) {

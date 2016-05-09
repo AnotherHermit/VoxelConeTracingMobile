@@ -34,7 +34,7 @@ Program::~Program() {
 }
 
 void Program::Step() {
-    LOGD("Step called");
+    //LOGD("Step called");
 
     Update();
     Render();
@@ -134,6 +134,10 @@ bool Program::Init() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.2f, 0.2f, 0.4f, 1.0f);
 
+//    winWidth = 400;
+//    winHeight = 400;
+//    glViewport(0,0,winWidth,winHeight);
+
     dumpInfo();
 
     glGenBuffers(1, &programBuffer);
@@ -175,16 +179,16 @@ bool Program::Init() {
     printError("Set drawScene Constants");
 
     // Set constant uniforms for voxel programs
-    glUseProgram(shaders.voxelize);
-    printError("Set voxelize Program");
-    glUniform1i(DIFF_UNIT, 0);
-    printError("Set voxelize Constants 1");
-    glUniform1i(VOXEL_TEXTURE, 2);
-    printError("Set voxelize Constants 2");
-    glUniform1i(VOXEL_DATA, 3);
-    printError("Set voxelize Constants 3");
-    glUniform1i(SHADOW_UNIT, 5);
-    printError("Set voxelize Constants 4");
+//    glUseProgram(shaders.voxelize);
+//    printError("Set voxelize Program");
+//    glUniform1i(DIFF_UNIT, 0);
+//    printError("Set voxelize Constants 1");
+//    glUniform1i(VOXEL_TEXTURE, 2);
+//    printError("Set voxelize Constants 2");
+//    glUniform1i(VOXEL_DATA, 3);
+//    printError("Set voxelize Constants 3");
+//    glUniform1i(SHADOW_UNIT, 5);
+//    printError("Set voxelize Constants 4");
 
     // Set constant uniforms for simple triangle drawing
     glUseProgram(shaders.singleTriangle);
@@ -201,12 +205,12 @@ bool Program::Init() {
     printError("Set voxel Constants");
 
     // Set constant uniforms for calculating mipmaps
-    glUseProgram(shaders.mipmap);
-    printError("Set mipmap Program");
-    glUniform1i(VOXEL_DATA, 3);
-    printError("Set mipmap Constants 1");
-    glUniform1i(VOXEL_DATA_NEXT, 4);
-    printError("Set mipmap Constants 2");
+//    glUseProgram(shaders.mipmap);
+//    printError("Set mipmap Program");
+//    glUniform1i(VOXEL_DATA, 3);
+//    printError("Set mipmap Constants 1");
+//    glUniform1i(VOXEL_DATA_NEXT, 4);
+//    printError("Set mipmap Constants 2");
 
 
     // Set up the camera
@@ -217,6 +221,10 @@ bool Program::Init() {
     }
 
     printError("Init Camera");
+
+    // Load Asset folders
+    LoadAssetFolder("models");
+
 
     // Load scenes
     Scene* cornell = new Scene();
@@ -258,8 +266,8 @@ void Program::Update() {
 void Program::Render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//    GetCurrentScene()->CreateShadow();
-//    GetCurrentScene()->RenderData();
+    GetCurrentScene()->CreateShadow();
+    GetCurrentScene()->RenderData();
 //    GetCurrentScene()->Voxelize();
 //    GetCurrentScene()->MipMap();
     GetCurrentScene()->Draw();

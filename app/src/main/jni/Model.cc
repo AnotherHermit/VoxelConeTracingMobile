@@ -55,7 +55,7 @@ void Model::SetStandardData(size_t numVertices, GLfloat *verticeData,
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * numBiTangents, biTangentData, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshBuffers[4]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLfloat) * numIndices, indexData, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * numIndices, indexData, GL_STATIC_DRAW);
 
     // Set the GPU pointers for drawing
     glBindVertexArray(vao);
@@ -142,22 +142,23 @@ void Model::ShadowMap() {
 
 void Model::Draw() {
     glUniform3f(DIFF_COLOR, diffColor.r, diffColor.g, diffColor.b);
-
+    printError("Model::Draw DiffColor");
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseID);
-
+    printError("Model::Draw Tex0");
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, maskID);
-
+    printError("Model::Draw Tex1");
     glBindVertexArray(vao);
     glUniform1i(SUBROUTINE, subDrawID);
-
+    printError("Model::Draw Sub");
     // Disable cull faces for transparent models
     if (hasMaskTex()) {
         glDisable(GL_CULL_FACE);
     } else {
         glEnable(GL_CULL_FACE);
     }
-
+    printError("Model::Draw Cull");
     glDrawElements(GL_TRIANGLES, (GLsizei) nIndices, GL_UNSIGNED_INT, 0L);
+    printError("Model::Draw Draw");
 }

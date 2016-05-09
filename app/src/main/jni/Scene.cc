@@ -16,16 +16,16 @@
 
 Scene::Scene() {
     options.skipNoTexture = false;
-    options.drawModels = true;
+    options.drawTextures = true;
+    options.drawModels = false;
     options.drawVoxels = false;
-    options.drawTextures = false;
     options.shadowRes = 512;
 
     param.lightDir = glm::vec3(0.58f, 0.58f, 0.58f);
     param.voxelRes = 256;
     param.voxelLayer = 0;
-    param.voxelDraw = 0;
-    param.view = 0;
+    param.voxelDraw = 8;
+    param.view = 2;
     param.numMipLevels = (GLuint) log2(param.voxelRes);
     param.mipLevel = 0;
 
@@ -81,12 +81,14 @@ void Scene::InitBuffers() {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SPARSE_LIST, sparseListBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER, (sizeof(GLuint) * MAX_SPARSE_BUFFER_SIZE), NULL,
                  GL_STREAM_DRAW);
+
+    printError("Scene::InitBuffers\n");
 }
 
 bool Scene::SetupScene(const char *path) {
     ModelLoader modelLoader;
     if (!modelLoader.LoadScene(path, models, &maxVertex, &minVertex)) {
-        std::cout << "Failed to load scene: " << path << std::endl;
+        LOGE("Failed to load scene: %s\n", path);
         return false;
     }
 
@@ -110,8 +112,8 @@ bool Scene::SetupScene(const char *path) {
 bool Scene::InitVoxel() {
     // Load a model for drawing the voxel
     ModelLoader modelLoader;
-    if (!modelLoader.LoadModel("resources/voxelLarge.obj", voxelModel)) {
-        std::cout << "Failed to load voxel model" << std::endl;
+    if (!modelLoader.LoadModel(MODEL_PATH("voxelLarge.obj"), voxelModel)) {
+        LOGE("Failed to load voxel model");
         return false;
     }
 
@@ -142,6 +144,8 @@ void Scene::SetupDrawInd() {
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, drawIndBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, DRAW_IND, drawIndBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(drawIndCmd), drawIndCmd, GL_STREAM_DRAW);
+
+    printError("Scene::SetupDrawInd");
 }
 
 void Scene::SetupCompInd() {
@@ -157,6 +161,7 @@ void Scene::SetupCompInd() {
     glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, compIndBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, COMPUTE_IND, compIndBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(compIndCmd), compIndCmd, GL_STREAM_DRAW);
+    printError("Scene::SetupCompInd");
 }
 
 void Scene::SetupVoxelTextures() {
@@ -173,6 +178,8 @@ void Scene::SetupVoxelTextures() {
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+    printError("Scene::SetupVoxelTextures 2D Array");
+
     // Create the 3D texture that contains the voxel data
     if (voxelTex != 0) {
         glDeleteTextures(1, &voxelTex);
@@ -187,6 +194,8 @@ void Scene::SetupVoxelTextures() {
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    printError("Scene::SetupVoxelTextures 3D");
 }
 
 void Scene::SetupSceneTextures() {
@@ -197,12 +206,14 @@ void Scene::SetupSceneTextures() {
         glDeleteTextures(2, sceneTex);
     }
     glGenTextures(2, sceneTex);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, sceneTex[0]);
-    glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA32F, origViewportSize[2], origViewportSize[3], 5);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, sceneTex[0]);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, origViewportSize[2], origViewportSize[3]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    printError("Scene::SetupSceneTextures 2D Array");
 
     glBindTexture(GL_TEXTURE_2D, sceneTex[1]);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, origViewportSize[2],
@@ -212,39 +223,48 @@ void Scene::SetupSceneTextures() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_GEQUAL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+
+    printError("Scene::SetupSceneTextures Depth");
 
     if (sceneFBO == 0) {
         glGenFramebuffers(1, &sceneFBO);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
 
-    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, sceneTex[0], 0, 0);
-    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, sceneTex[0], 0, 1);
-    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, sceneTex[0], 0, 2);
-    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, sceneTex[0], 0, 3);
-    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, sceneTex[0], 0, 4);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sceneTex[0], 0);
+//    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, sceneTex[0], 0, 1);
+//    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, sceneTex[0], 0, 2);
+//    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, sceneTex[0], 0, 3);
+//    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, sceneTex[0], 0, 4);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, sceneTex[1], 0);
 
-    GLenum DrawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2,
-                            GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4};
-    glDrawBuffers(5, DrawBuffers);
-    glReadBuffer(GL_NONE);
+    GLenum DrawBuffers[] = {/*GL_NONE*/GL_COLOR_ATTACHMENT0/*, GL_COLOR_ATTACHMENT1/*, GL_COLOR_ATTACHMENT2,
+                            GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4*/};
+    glDrawBuffers(1, DrawBuffers);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        LOGE("Framebuffer error");
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    printError("Scene::SetupSceneTextures FBO");
 }
 
 void Scene::SetupShadowTexture() {
 
     glGenTextures(1, &shadowTex);
     glBindTexture(GL_TEXTURE_2D, shadowTex);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT16, options.shadowRes, options.shadowRes);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, options.shadowRes, options.shadowRes);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_GEQUAL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+
+    printError("Scene::SetupShadowTexture Texture");
 
     glGenFramebuffers(1, &shadowFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
@@ -253,9 +273,11 @@ void Scene::SetupShadowTexture() {
 
     GLenum DrawBuffers[] = {GL_NONE};
     glDrawBuffers(1, DrawBuffers);
-    glReadBuffer(GL_NONE);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    printError("Scene::SetupShadowTexture FBO");
+
 }
 
 void Scene::SetupShadowMatrix() {
@@ -278,6 +300,8 @@ void Scene::SetupShadowMatrix() {
     // Upload new params to GPU
     glBindBufferBase(GL_UNIFORM_BUFFER, SCENE, sceneBuffer);
     glBufferSubData(GL_UNIFORM_BUFFER, NULL, sizeof(SceneParam), &param);
+
+    printError("Scene::SetupShadowMatrix");
 }
 
 void Scene::UpdateBuffers() {
@@ -290,6 +314,8 @@ void Scene::UpdateBuffers() {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, DRAW_IND, drawIndBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, COMPUTE_IND, compIndBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SPARSE_LIST, sparseListBuffer);
+
+    printError("Scene::UpdateBuffers");
 }
 
 void Scene::CreateShadow() {
@@ -312,6 +338,8 @@ void Scene::CreateShadow() {
 
     glUseProgram(shaders->shadowMap);
 
+    printError("Scene::CreateShadow Init");
+
     // Create the shadow map texture
     for (auto model = models->begin(); model != models->end(); model++) {
 
@@ -321,11 +349,14 @@ void Scene::CreateShadow() {
         }
 
         (*model)->ShadowMap();
+
     }
 
     // Restore the framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(origViewportSize[0], origViewportSize[1], origViewportSize[2], origViewportSize[3]);
+
+    printError("Scene::CreateShadow After");
 }
 
 void Scene::RenderData() {
@@ -340,6 +371,8 @@ void Scene::RenderData() {
 
     glUseProgram(shaders->drawData);
 
+    printError("Scene::RenderData Init");
+
     // Create the shadow map texture
     for (auto model = models->begin(); model != models->end(); model++) {
 
@@ -353,6 +386,8 @@ void Scene::RenderData() {
 
     // Restore the framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    printError("Scene::RenderData After");
 }
 
 void Scene::Voxelize() {
@@ -403,6 +438,8 @@ void Scene::Voxelize() {
 
     glUseProgram(shaders->voxelize);
 
+    printError("Scene::Voxelize Init");
+
     for (auto model = models->begin(); model != models->end(); model++) {
         // Don't draw models without texture if set to skip
         if (options.skipNoTexture && !(*model)->hasDiffuseTex()) {
@@ -418,10 +455,14 @@ void Scene::Voxelize() {
     // Restore the framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(origViewportSize[0], origViewportSize[1], origViewportSize[2], origViewportSize[3]);
+
+    printError("Scene::Voxelize After");
 }
 
 void Scene::MipMap() {
     glUseProgram(shaders->mipmap);
+
+    printError("Scene::Mipmap Init");
 
     for (GLuint level = 0; level < param.numMipLevels; level++) {
         glBindImageTexture(3, voxelTex, level, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
@@ -435,6 +476,8 @@ void Scene::MipMap() {
                         GL_COMMAND_BARRIER_BIT);
     }
     glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT);
+
+    printError("Scene::Mipmap after");
 }
 
 void Scene::Draw() {
@@ -456,13 +499,15 @@ void Scene::DrawTextures() {
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, shadowTex);
     glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, sceneTex[0]);
+    glBindTexture(GL_TEXTURE_2D, sceneTex[0]);
     glActiveTexture(GL_TEXTURE7);
     glBindTexture(GL_TEXTURE_2D, sceneTex[1]);
 
     glUniform1i(SUBROUTINE, param.voxelDraw);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    printError("Scene::DrawTextures");
 }
 
 void Scene::DrawScene() {
@@ -477,6 +522,8 @@ void Scene::DrawScene() {
 
         (*model)->Draw();
     }
+
+    printError("Scene::DrawScene");
 }
 
 void Scene::DrawVoxels() {
@@ -490,4 +537,6 @@ void Scene::DrawVoxels() {
 
     glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT,
                            (void *) (sizeof(DrawElementsIndirectCommand) * param.mipLevel));
+
+    printError("Scene::DrawVoxels");
 }

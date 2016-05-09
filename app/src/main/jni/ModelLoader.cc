@@ -59,9 +59,9 @@ bool ModelLoader::LoadScene(const char *path, std::vector<Model *> *outModels) {
 bool ModelLoader::LoadModels(const char *path) {
     // Load models
     std::string err;
-    bool wasLoaded = tinyobj::LoadObj(shapes, materials, err, path, "resources/");
+    bool wasLoaded = tinyobj::LoadObj(shapes, materials, err, path, MODEL_PATH(""));
     if (!wasLoaded || !err.empty()) {
-        std::cerr << err << std::endl;
+        LOGE("%s", err.c_str());
         return false;
     }
 
@@ -81,28 +81,28 @@ bool ModelLoader::LoadTextures() {
 
         // Load color texture of available
         data->diffuseID = 0;
-        startPath = "resources/";
+        startPath = "";
         if (!materials[i].diffuse_texname.empty()) {
             GLuint texID = LoadTexture(startPath.append(materials[i].diffuse_texname).c_str());
             if (texID != 0) {
                 data->diffuseID = texID;
                 data->subID = TEXTURE;
             } else {
-                std::cerr << "Tried loading texture: " << startPath << " but didn't succeed.\n";
+                LOGE("Tried loading texture: %s but didn't succeed.\n", startPath.c_str());
                 //return false;
             }
         }
 
         // Load texture mask if available
         data->maskID = 0;
-        startPath = "resources/";
+        startPath = "";
         if (!materials[i].alpha_texname.empty()) {
             GLuint texID = LoadTexture(startPath.append(materials[i].alpha_texname).c_str());
             if (texID != 0) {
                 data->maskID = texID;
                 data->subID = MASK;
             } else {
-                std::cerr << "Tried loading texture: " << startPath << " but didn't succeed.\n";
+                LOGE("Tried loading texture: %s but didn't succeed.\n", startPath.c_str());
                 //return false;
             }
         }
@@ -148,7 +148,7 @@ GLuint ModelLoader::LoadTexture(const char *path) {
             break;
 
         default:
-            std::cerr << "Bpp is in unknown format\n";
+            LOGE("Bpp is in unknown format\n");
             return 0;
     }
     glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, textureData);
@@ -165,7 +165,7 @@ GLuint ModelLoader::LoadTexture(const char *path) {
 
 bool ModelLoader::AddModels(std::vector<Model *> *models) {
     if (models == nullptr) {
-        std::cout << "No model vector was supplied when loading scene" << std::endl;
+        LOGE("No model vector was supplied when loading scene\n");
         return false;
     }
 
@@ -201,8 +201,8 @@ bool ModelLoader::AddModels(std::vector<Model *> *models) {
 
 bool ModelLoader::CalculateMinMax(glm::vec3 **maxVertex, glm::vec3 **minVertex) {
     if (maxVertex == nullptr || minVertex == nullptr) {
-        std::cout << "No min/max vector was supplied when loading a scene" << std::endl;
-        return true;
+        LOGE("No min/max vector was supplied when loading a scene\n");
+        return false;
     }
 
 

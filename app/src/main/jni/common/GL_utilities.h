@@ -13,8 +13,9 @@
 #define GL_TESS_CONTROL_SHADER GL_TESS_CONTROL_SHADER_EXT
 #define GL_TESS_EVALUATION_SHADER GL_TESS_EVALUATION_SHADER_EXT
 
+#define ASSET_BASE_PATH    "/storage/emulated/0/Android/data/se.anotherhermit.voxels/files/"
 #define TEXTURE_PATH(name) "textures/" name
-#define MODEL_PATH(name)   "models/" name
+#define MODEL_PATH(name)   ASSET_BASE_PATH name
 #define SHADER_PATH(name)  "shaders/" name
 
 #include <GLES3/gl3.h>
@@ -29,6 +30,8 @@ typedef std::chrono::high_resolution_clock myTime;
 typedef std::chrono::duration<float> fsec;
 
 void SetAssetsManager(AAssetManager* initMgr);
+
+void LoadAssetFolder(const char* folderName);
 
 char *readFile(const char *file);
 
