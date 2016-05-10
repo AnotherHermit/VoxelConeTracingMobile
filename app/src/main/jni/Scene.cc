@@ -24,7 +24,7 @@ Scene::Scene() {
     param.lightDir = glm::vec3(0.58f, 0.58f, 0.58f);
     param.voxelRes = 256;
     param.voxelLayer = 0;
-    param.voxelDraw = 8;
+    param.voxelDraw = 4;
     param.view = 2;
     param.numMipLevels = (GLuint) log2(param.voxelRes);
     param.mipLevel = 0;
@@ -51,7 +51,7 @@ bool Scene::Init(const char *path, ShaderList *initShaders) {
     shaders = initShaders;
 
     InitBuffers();
-    //InitMipMap();
+//    InitMipMap();
     if (!SetupScene(path)) return false;
     if (!InitVoxel()) return false;
 
@@ -206,42 +206,39 @@ void Scene::SetupSceneTextures() {
         glDeleteTextures(2, sceneTex);
     }
     glGenTextures(2, sceneTex);
-    glBindTexture(GL_TEXTURE_2D, sceneTex[0]);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, origViewportSize[2], origViewportSize[3]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, sceneTex[0]);
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA16F, origViewportSize[2], origViewportSize[3], 4);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     printError("Scene::SetupSceneTextures 2D Array");
 
     glBindTexture(GL_TEXTURE_2D, sceneTex[1]);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, origViewportSize[2],
-                   origViewportSize[3]);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, origViewportSize[2], origViewportSize[3]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_GEQUAL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-
+    glBindTexture(GL_TEXTURE_2D, 0);
     printError("Scene::SetupSceneTextures Depth");
 
     if (sceneFBO == 0) {
         glGenFramebuffers(1, &sceneFBO);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sceneTex[0], 0);
-//    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, sceneTex[0], 0, 1);
-//    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, sceneTex[0], 0, 2);
-//    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, sceneTex[0], 0, 3);
-//    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, sceneTex[0], 0, 4);
+    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, sceneTex[0], 0, 0);
+    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, sceneTex[0], 0, 1);
+    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, sceneTex[0], 0, 2);
+    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, sceneTex[0], 0, 3);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, sceneTex[1], 0);
 
-    GLenum DrawBuffers[] = {/*GL_NONE*/GL_COLOR_ATTACHMENT0/*, GL_COLOR_ATTACHMENT1/*, GL_COLOR_ATTACHMENT2,
-                            GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4*/};
-    glDrawBuffers(1, DrawBuffers);
+    GLenum DrawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2,
+                            GL_COLOR_ATTACHMENT3};
+    glDrawBuffers(4, DrawBuffers);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         LOGE("Framebuffer error");
@@ -271,8 +268,12 @@ void Scene::SetupShadowTexture() {
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex, 0);
 
-    GLenum DrawBuffers[] = {GL_NONE};
-    glDrawBuffers(1, DrawBuffers);
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        LOGE("Framebuffer error");
+    }
+
+//    GLenum DrawBuffers[] = {GL_NONE};
+//    glDrawBuffers(1, DrawBuffers);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -360,13 +361,11 @@ void Scene::CreateShadow() {
 }
 
 void Scene::RenderData() {
-    // Enable rendering to framebuffer with shadow map resolution
+    // Enable rendering to framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
-
-    // Clear the last shadow map
+    // Clear the last scene data
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Light should also hit backsides (especially for cornell)
     glEnable(GL_CULL_FACE);
 
     glUseProgram(shaders->drawData);
@@ -499,7 +498,7 @@ void Scene::DrawTextures() {
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, shadowTex);
     glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D, sceneTex[0]);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, sceneTex[0]);
     glActiveTexture(GL_TEXTURE7);
     glBindTexture(GL_TEXTURE_2D, sceneTex[1]);
 
