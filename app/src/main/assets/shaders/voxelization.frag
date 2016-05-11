@@ -11,12 +11,12 @@ in vec3 exNormal;
 flat in uint domInd;
 
 layout(location = 0) uniform vec3 diffColor;
-layout(location = 1) uniform sampler2D diffuseUnit;
-
-layout(location = 3) uniform layout(r32ui) highp uimage2DArray voxelTextures;
-layout(location = 4) uniform layout(r32ui) highp uimage3D voxelData;
-layout(location = 6) uniform sampler2D shadowMap;
 layout(location = 10) uniform int colorPicker;
+
+layout(binding = 0) uniform sampler2D diffuseUnit;
+layout(binding = 2, r32ui) uniform highp uimage2DArray voxelTextures;
+layout(binding = 3, r32ui) uniform highp uimage3D voxelData;
+layout(binding = 5) uniform sampler2D shadowMap;
 
 struct SceneParams {
 	mat4 MTOmatrix[3];

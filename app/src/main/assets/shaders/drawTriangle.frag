@@ -7,11 +7,11 @@ precision highp int;
 in vec2 exTexCoords;
 out vec4 outColor;
 
-layout(location = 3) uniform highp usampler2DArray voxelTextures;
-layout(location = 4) uniform highp usampler3D voxelData;
-layout(location = 6) uniform highp sampler2D shadowMap;
-layout(location = 8) uniform highp sampler2DArray sceneTex;
-layout(location = 9) uniform highp sampler2D sceneDepth;
+layout(binding = 2) uniform highp usampler2DArray voxelTextures;
+layout(binding = 3) uniform highp usampler3D voxelData;
+layout(binding = 5) uniform highp sampler2D shadowMap;
+layout(binding = 6) uniform highp sampler2DArray sceneTex;
+layout(binding = 7) uniform highp sampler2D sceneDepth;
 layout(location = 10) uniform int texNumber;
 
 struct SceneParams {

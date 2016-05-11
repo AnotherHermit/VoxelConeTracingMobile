@@ -21,7 +21,7 @@ Program::Program() {
     time.startTimer();
 
     // Set program parameters
-    cameraStartPos = glm::vec3(0.0, 0.0, 2.0);
+    cameraStartPos = glm::vec3(0.0, 0.0, 5.0);
     cameraFrustumFar = 500.0f;
 
     sceneSelect = 0;
@@ -97,37 +97,6 @@ bool Program::Init() {
 
     // Create shadowmap
     shaders.shadowMap = loadShaders(SHADER_PATH("shadowMap.vert"), SHADER_PATH("shadowMap.frag"));
-
-    // TODO: Make this a separate function
-    // Set constant uniforms for the drawing programs
-    GL_CHECK(glUseProgram(shaders.drawScene));
-    GL_CHECK(glUniform1i(DIFF_UNIT, 0));
-    GL_CHECK(glUniform1i(MASK_UNIT, 1));
-
-    // Set constant uniforms for voxel programs
-    GL_CHECK(glUseProgram(shaders.voxelize));
-    GL_CHECK(glUniform1i(DIFF_UNIT, 0));
-    GL_CHECK(glUniform1i(VOXEL_TEXTURE, 2));
-    GL_CHECK(glUniform1i(VOXEL_DATA, 3));
-    GL_CHECK(glUniform1i(SHADOW_UNIT, 5));
-
-    // Set constant uniforms for simple triangle drawing
-    GL_CHECK(glUseProgram(shaders.singleTriangle));
-    GL_CHECK(glUniform1i(VOXEL_TEXTURE, 2));
-    GL_CHECK(glUniform1i(VOXEL_DATA, 3));
-    GL_CHECK(glUniform1i(SHADOW_UNIT, 5));
-    GL_CHECK(glUniform1i(SCENE_UNIT, 6));
-    GL_CHECK(glUniform1i(SCENE_DEPTH, 7));
-
-    // Set constant uniforms for drawing the voxel overlay
-    GL_CHECK(glUseProgram(shaders.voxel));
-    GL_CHECK(glUniform1i(VOXEL_DATA, 3));
-
-    // Set constant uniforms for calculating mipmaps
-//    GL_CHECK(glUseProgram(shaders.mipmap));
-//    GL_CHECK(glUniform1i(VOXEL_DATA, 3));
-//    GL_CHECK(glUniform1i(VOXEL_DATA_NEXT, 4));
-
 
     // Set up the camera
     cam = new Camera(cameraStartPos, &winWidth, &winHeight, cameraFrustumFar);

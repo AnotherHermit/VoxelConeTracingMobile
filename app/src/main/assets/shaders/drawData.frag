@@ -17,8 +17,8 @@ layout(location = 3) out vec4 outTangent;
 //layout(location = 4) out vec4 outBiTangent;
 
 layout(location = 0) uniform vec3 diffColor;
-layout(location = 1) uniform sampler2D diffuseUnit;
-layout(location = 2) uniform sampler2D maskUnit;
+layout(binding = 0) uniform sampler2D diffuseUnit;
+layout(binding = 1) uniform sampler2D maskUnit;
 layout(location = 10) uniform int colorPicker;
 
 //subroutine vec4 SampleColor();
