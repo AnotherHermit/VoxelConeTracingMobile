@@ -128,10 +128,10 @@ GLuint ModelLoader::LoadTexture(const char *path) {
         return 0;
     }
 
-    glGenTextures(1, &texID);
-    glBindTexture(GL_TEXTURE_2D, texID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL_CHECK(glGenTextures(1, &texID));
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, texID));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
     // Select appropriate type of data depending on bytes per pixel
     switch (nByte) {
@@ -151,11 +151,11 @@ GLuint ModelLoader::LoadTexture(const char *path) {
             LOGE("Bpp is in unknown format\n");
             return 0;
     }
-    glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, textureData);
+    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, textureData));
 
     // Mipmaps
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D));
+    GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
 
     // Dont need the data anymore since it is now handled by OpenGL
     free(textureData);
@@ -210,7 +210,7 @@ bool ModelLoader::CalculateMinMax(glm::vec3 **maxVertex, glm::vec3 **minVertex) 
 
         // Check vertex data for min and max corners
         for (auto vertex = shape->mesh.positions.begin();
-             vertex != shape->mesh.positions.end() - 3; vertex += 3) {
+            vertex != shape->mesh.positions.end() - 3; vertex += 3) {
             glm::vec3 currentVertex = glm::vec3(vertex[0], vertex[1], vertex[2]);
 
             if (*maxVertex == nullptr) {

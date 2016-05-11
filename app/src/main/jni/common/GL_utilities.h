@@ -3,6 +3,14 @@
 
 #include <android/log.h>
 
+#define DEBUG
+
+#ifdef DEBUG
+#define GL_CHECK(fn) fn; printError(#fn, __FILE__, __LINE__)
+#else
+#define GL_CHECK(fn) fn
+#endif //DEBUG
+
 #define LOG_TAG "Voxels"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -37,7 +45,7 @@ char *readFile(const char *file);
 
 void dumpInfo(void);
 
-GLint printError(const char *functionName);
+GLint printError(const char *functionName, const char* file, int line);
 
 GLint printShaderInfoLog(GLuint obj, const char *fn);
 

@@ -98,12 +98,12 @@ GLint printShaderInfoLog(GLuint obj, const char *fn) {
 
     GLint wasError = 0;
 
-    glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &infologLength);
+    GL_CHECK(glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &infologLength));
 
     if (infologLength > 2) {
         LOGE("[From %s:]\n", fn);
         infoLog = (char *) malloc((size_t)infologLength);
-        glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog);
+        GL_CHECK(glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog));
         LOGE("%s\n", infoLog);
         free(infoLog);
         wasError = 1;
@@ -120,7 +120,7 @@ GLint printProgramInfoLog(GLuint obj, const char *vfn, const char *ffn,
 
     GLint wasError = 0;
 
-    glGetProgramiv(obj, GL_INFO_LOG_LENGTH, &infologLength);
+    GL_CHECK(glGetProgramiv(obj, GL_INFO_LOG_LENGTH, &infologLength));
 
     if (infologLength > 2) {
         LOGE("[From %s", vfn);
@@ -133,7 +133,7 @@ GLint printProgramInfoLog(GLuint obj, const char *vfn, const char *ffn,
         LOGE(":]\n");
 
         infoLog = (char *) malloc((size_t)infologLength);
-        glGetProgramInfoLog(obj, infologLength, &charsWritten, infoLog);
+        GL_CHECK(glGetProgramInfoLog(obj, infologLength, &charsWritten, infoLog));
         LOGE("%s\n", infoLog);
         free(infoLog);
 
@@ -150,62 +150,62 @@ GLuint compileShaders(const char *vs, const char *fs, const char *gs, const char
                       const char *tefn) {
     GLuint v, f, g, tc, te, p;
 
-    p = glCreateProgram();
+    p = GL_CHECK(glCreateProgram());
 
-    v = glCreateShader(GL_VERTEX_SHADER);
-    f = glCreateShader(GL_FRAGMENT_SHADER);
-    g = glCreateShader(GL_GEOMETRY_SHADER);
-    tc = glCreateShader(GL_TESS_CONTROL_SHADER);
-    te = glCreateShader(GL_TESS_EVALUATION_SHADER);
+    v = GL_CHECK(glCreateShader(GL_VERTEX_SHADER));
+    f = GL_CHECK(glCreateShader(GL_FRAGMENT_SHADER));
+    g = GL_CHECK(glCreateShader(GL_GEOMETRY_SHADER));
+    tc = GL_CHECK(glCreateShader(GL_TESS_CONTROL_SHADER));
+    te = GL_CHECK(glCreateShader(GL_TESS_EVALUATION_SHADER));
 
-    glShaderSource(v, 1, &vs, NULL);
-    glCompileShader(v);
-    glAttachShader(p, v);
-    glDeleteShader(v);
+    GL_CHECK(glShaderSource(v, 1, &vs, NULL));
+    GL_CHECK(glCompileShader(v));
+    GL_CHECK(glAttachShader(p, v));
+    GL_CHECK(glDeleteShader(v));
     printShaderInfoLog(v, vfn);
 
     if (fs != NULL) {
-        glShaderSource(f, 1, &fs, NULL);
-        glCompileShader(f);
-        glAttachShader(p, f);
-        glDeleteShader(v);
+        GL_CHECK(glShaderSource(f, 1, &fs, NULL));
+        GL_CHECK(glCompileShader(f));
+        GL_CHECK(glAttachShader(p, f));
+        GL_CHECK(glDeleteShader(v));
         printShaderInfoLog(f, ffn);
     }
     if (gs != NULL) {
-        glShaderSource(g, 1, &gs, NULL);
-        glCompileShader(g);
-        glAttachShader(p, g);
-        glDeleteShader(g);
+        GL_CHECK(glShaderSource(g, 1, &gs, NULL));
+        GL_CHECK(glCompileShader(g));
+        GL_CHECK(glAttachShader(p, g));
+        GL_CHECK(glDeleteShader(g));
         printShaderInfoLog(g, gfn);
     }
 #ifdef GL_TESS_CONTROL_SHADER_EXT
     if (tcs != NULL) {
-        glShaderSource(tc, 1, &tcs, NULL);
-        glCompileShader(tc);
-        glAttachShader(p, tc);
-        glDeleteShader(tc);
+        GL_CHECK(glShaderSource(tc, 1, &tcs, NULL));
+        GL_CHECK(glCompileShader(tc));
+        GL_CHECK(glAttachShader(p, tc));
+        GL_CHECK(glDeleteShader(tc));
         printShaderInfoLog(tc, tcfn);
     }
     if (tes != NULL) {
-        glShaderSource(te, 1, &tes, NULL);
-        glCompileShader(te);
-        glAttachShader(p, te);
-        glDeleteShader(te);
+        GL_CHECK(glShaderSource(te, 1, &tes, NULL));
+        GL_CHECK(glCompileShader(te));
+        GL_CHECK(glAttachShader(p, te));
+        GL_CHECK(glDeleteShader(te));
         printShaderInfoLog(te, tefn);
     }
 #endif
 
     if (fs != NULL) {
-        glLinkProgram(p);
-        glUseProgram(p);
+        GL_CHECK(glLinkProgram(p));
+        GL_CHECK(glUseProgram(p));
         printProgramInfoLog(p, vfn, ffn, gfn, tcfn, tefn);
     }
 
-    if (vs != NULL) glDetachShader(p, v);
-    if (fs != NULL) glDetachShader(p, f);
-    if (gs != NULL) glDetachShader(p, g);
-    if (tcs != NULL) glDetachShader(p, tc);
-    if (tes != NULL) glDetachShader(p, te);
+    if (vs != NULL) GL_CHECK(glDetachShader(p, v));
+    if (fs != NULL) GL_CHECK(glDetachShader(p, f));
+    if (gs != NULL) GL_CHECK(glDetachShader(p, g));
+    if (tcs != NULL) GL_CHECK(glDetachShader(p, tc));
+    if (tes != NULL) GL_CHECK(glDetachShader(p, te));
 
     return p;
 }
@@ -254,23 +254,23 @@ GLuint loadShadersGT(const char *vertFileName, const char *fragFileName, const c
 }
 
 GLuint CompileComputeShader(const char *compFileName) {
-    GLuint program = glCreateProgram();
-    GLuint computeShader = glCreateShader(GL_COMPUTE_SHADER);
+    GLuint program = GL_CHECK(glCreateProgram());
+    GLuint computeShader = GL_CHECK(glCreateShader(GL_COMPUTE_SHADER));
 
     const char *cs = readFile((char *) compFileName);
     if (cs == NULL) {
         printf("Error reading shader!\n");
     }
 
-    glShaderSource(computeShader, 1, &cs, NULL);
-    glCompileShader(computeShader);
+    GL_CHECK(glShaderSource(computeShader, 1, &cs, NULL));
+    GL_CHECK(glCompileShader(computeShader));
 
     printShaderInfoLog(computeShader, compFileName);
 
-    glAttachShader(program, computeShader);
-    glDeleteShader(computeShader);
-    glLinkProgram(program);
-    glDetachShader(program, computeShader);
+    GL_CHECK(glAttachShader(program, computeShader));
+    GL_CHECK(glDeleteShader(computeShader));
+    GL_CHECK(glLinkProgram(program));
+    GL_CHECK(glDetachShader(program, computeShader));
 
     printProgramInfoLog(program, compFileName, NULL, NULL, NULL, NULL);
 
@@ -284,8 +284,7 @@ void dumpInfo(void) {
     LOGI("Renderer: %s\n", glGetString(GL_RENDERER));
     LOGI("Version: %s\n", glGetString(GL_VERSION));
     LOGI("GLSL: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
-    LOGI("Extensions: %s\n", glGetString(GL_EXTENSIONS));
-    printError("dumpInfo");
+//    LOGI("Extensions: %s\n", glGetString(GL_EXTENSIONS));
 }
 
 static GLenum lastError = 0;
@@ -316,12 +315,12 @@ const char* getGLErrorMsg(GLenum error) {
 }
 
 /* report GL errors, if any, to stderr */
-GLint printError(const char *functionName) {
+GLint printError(const char *functionName, const char* file, int line) {
     GLenum error;
     GLint wasError = 0;
     while ((error = glGetError()) != GL_NO_ERROR) {
         if ((lastError != error) || (strcmp(functionName, lastErrorFunction))) {
-            LOGE("GL error %s detected in %s\n", getGLErrorMsg(error), functionName);
+            LOGE("GL error %s detected in %s, %s:%i\n", getGLErrorMsg(error), functionName, file, line);
             strcpy(lastErrorFunction, functionName);
             lastError = error;
             wasError = 1;
@@ -397,33 +396,33 @@ FBOstruct *initFBO(int width, int height, int int_method) {
     fbo->height = height;
 
     // create objects
-    glGenFramebuffers(1, &fbo->fb); // frame buffer id
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
-    glGenTextures(1, &fbo->texid);
+    GL_CHECK(glGenFramebuffers(1, &fbo->fb)); // frame buffer id
+    GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb));
+    GL_CHECK(glGenTextures(1, &fbo->texid));
     LOGE("%u \n", fbo->texid);
-    glBindTexture(GL_TEXTURE_2D, fbo->texid);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, fbo->texid));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
     if (int_method == 0) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     } else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     }
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo->texid, 0);
+    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+    GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo->texid, 0));
 
     // Renderbuffer
     // initialize depth renderbuffer
-    glGenRenderbuffers(1, &fbo->rb);
-    glBindRenderbuffer(GL_RENDERBUFFER, fbo->rb);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, fbo->width, fbo->height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo->rb);
+    GL_CHECK(glGenRenderbuffers(1, &fbo->rb));
+    GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, fbo->rb));
+    GL_CHECK(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, fbo->width, fbo->height));
+    GL_CHECK(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo->rb));
     CHECK_FRAMEBUFFER_STATUS();
 
     LOGE("Framebuffer object %u\n", fbo->fb);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     return fbo;
 }
 
@@ -441,45 +440,45 @@ FBOstruct *initFBO2(int width, int height, int int_method, int create_depthimage
     fbo->height = height;
 
     // create objects
-    glGenRenderbuffers(1, &fbo->rb);
-    glGenFramebuffers(1, &fbo->fb); // frame buffer id
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
-    glGenTextures(1, &fbo->texid);
+    GL_CHECK(glGenRenderbuffers(1, &fbo->rb));
+    GL_CHECK(glGenFramebuffers(1, &fbo->fb)); // frame buffer id
+    GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb));
+    GL_CHECK(glGenTextures(1, &fbo->texid));
     LOGE("%u \n", fbo->texid);
-    glBindTexture(GL_TEXTURE_2D, fbo->texid);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, fbo->texid));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
     if (int_method == 0) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     } else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     }
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo->texid, 0);
+    GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo->texid, 0));
     if (create_depthimage != 0) {
-        glGenTextures(1, &fbo->depth);
-        glBindTexture(GL_TEXTURE_2D, fbo->depth);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT,
-                     GL_UNSIGNED_BYTE, 0L);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbo->depth, 0);
+        GL_CHECK(glGenTextures(1, &fbo->depth));
+        GL_CHECK(glBindTexture(GL_TEXTURE_2D, fbo->depth));
+        GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT,
+                     GL_UNSIGNED_BYTE, 0L));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+        GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbo->depth, 0));
         LOGE("depthtexture: %u", fbo->depth);
     }
 
     // Renderbuffer
     // initialize depth renderbuffer
-    glBindRenderbuffer(GL_RENDERBUFFER, fbo->rb);
+    GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, fbo->rb));
     CHECK_FRAMEBUFFER_STATUS();
 
     LOGE("Framebuffer object %u\n", fbo->fb);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     return fbo;
 }
 
@@ -499,11 +498,11 @@ void useFBO(FBOstruct *out, FBOstruct *in1, FBOstruct *in2) {
 // This was supposed to catch changes in viewport size and update lastw/lasth.
 // It worked for me in the past, but now it causes problems to I have to
 // fall back to manual updating.
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &curfbo);
+    GL_CHECK(glGetIntegerv(GL_FRAMEBUFFER_BINDING, &curfbo));
     if (curfbo == 0) {
         GLint viewport[4] = {0, 0, 0, 0};
         GLint w, h;
-        glGetIntegerv(GL_VIEWPORT, viewport);
+        GL_CHECK(glGetIntegerv(GL_VIEWPORT, viewport));
         w = viewport[2] - viewport[0];
         h = viewport[3] - viewport[1];
         if ((w > 0) && (h > 0) && (w < 65536) &&
@@ -514,26 +513,32 @@ void useFBO(FBOstruct *out, FBOstruct *in1, FBOstruct *in2) {
         }
     }
 
-    if (out != 0L)
-        glViewport(0, 0, out->width, out->height);
-    else
-        glViewport(0, 0, lastw, lasth);
+    if (out != 0L) {
+        GL_CHECK(glViewport(0, 0, out->width, out->height));
+    }
+    else {
+        GL_CHECK(glViewport(0, 0, lastw, lasth));
+    }
 
     if (out != 0L) {
-        glBindFramebuffer(GL_FRAMEBUFFER, out->fb);
-        glViewport(0, 0, out->width, out->height);
-    } else
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glActiveTexture(GL_TEXTURE1);
-    if (in2 != 0L)
-        glBindTexture(GL_TEXTURE_2D, in2->texid);
-    else
-        glBindTexture(GL_TEXTURE_2D, 0);
-    glActiveTexture(GL_TEXTURE0);
-    if (in1 != 0L)
-        glBindTexture(GL_TEXTURE_2D, in1->texid);
-    else
-        glBindTexture(GL_TEXTURE_2D, 0);
+        GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, out->fb));
+        GL_CHECK(glViewport(0, 0, out->width, out->height));
+    } else {
+        GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    }
+    GL_CHECK(glActiveTexture(GL_TEXTURE1));
+    if (in2 != 0L) {
+        GL_CHECK(glBindTexture(GL_TEXTURE_2D, in2->texid));
+    }
+    else {
+        GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+    }
+    GL_CHECK(glActiveTexture(GL_TEXTURE0));
+    if (in1 != 0L) {
+        GL_CHECK(glBindTexture(GL_TEXTURE_2D, in1->texid));
+    } else {
+        GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+    }
 }
 
 
