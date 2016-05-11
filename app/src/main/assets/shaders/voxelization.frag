@@ -121,7 +121,7 @@ void main()
 
 	ivec3 voxelCoord;
 	float res = float(scene.voxelRes);
-	int depthCoord = int(gl_FragCoord.z * res);
+	float depthCoord = gl_FragCoord.z * res;
 
 
 	if(domInd == uint(0)) {

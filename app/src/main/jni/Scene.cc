@@ -16,15 +16,15 @@
 
 Scene::Scene() {
     options.skipNoTexture = false;
-    options.drawTextures = true;
+    options.drawTextures = false;
     options.drawModels = false;
     options.drawVoxels = true;
     options.shadowRes = 512;
 
     param.lightDir = glm::vec3(0.58f, 0.58f, 0.58f);
     param.voxelRes = 128;
-    param.voxelLayer = 0;
-    param.voxelDraw = 3;
+    param.voxelLayer = 3;
+    param.voxelDraw = 1;
     param.view = 0;
     param.numMipLevels = (GLuint) log2(param.voxelRes);
     param.mipLevel = 0;
@@ -392,7 +392,7 @@ void Scene::Voxelize() {
 
     // Bind the textures used to hold the voxelization data
     GL_CHECK(glBindImageTexture(2, voxel2DTex, 0, GL_TRUE, 0, GL_READ_WRITE, GL_R32UI));
-    GL_CHECK(glBindImageTexture(3, voxelTex, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI));
+    GL_CHECK(glBindImageTexture(3, voxelTex, 0, GL_TRUE, 0, GL_READ_WRITE, GL_R32UI));
 
     GL_CHECK(glActiveTexture(GL_TEXTURE5));
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, shadowTex));
@@ -417,6 +417,11 @@ void Scene::Voxelize() {
     // Restore the framebuffer
     GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     GL_CHECK(glViewport(origViewportSize[0], origViewportSize[1], origViewportSize[2], origViewportSize[3]));
+
+    GLint* temp = (GLint*)GL_CHECK(glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, sizeof(GLint) * 5, GL_MAP_READ_BIT));
+    LOGD("Draw Indirect Buffer: %i, %i, %i, %i, %i", temp[0],temp[1],temp[2],temp[3],temp[4]);
+    GL_CHECK(glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER));
+
 }
 
 void Scene::MipMap() {
