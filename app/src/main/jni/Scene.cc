@@ -81,8 +81,6 @@ void Scene::InitBuffers() {
     GL_CHECK(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SPARSE_LIST, sparseListBuffer));
     GL_CHECK(glBufferData(GL_SHADER_STORAGE_BUFFER, (sizeof(GLuint) * MAX_SPARSE_BUFFER_SIZE), NULL,
                  GL_STREAM_DRAW));
-
-//    printError("Scene::InitBuffers\n");
 }
 
 bool Scene::SetupScene(const char *path) {
@@ -144,8 +142,6 @@ void Scene::SetupDrawInd() {
     GL_CHECK(glBindBuffer(GL_DRAW_INDIRECT_BUFFER, drawIndBuffer));
     GL_CHECK(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, DRAW_IND, drawIndBuffer));
     GL_CHECK(glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(drawIndCmd), drawIndCmd, GL_STREAM_DRAW));
-
-//    printError("Scene::SetupDrawInd");
 }
 
 void Scene::SetupCompInd() {
@@ -161,15 +157,13 @@ void Scene::SetupCompInd() {
     GL_CHECK(glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, compIndBuffer));
     GL_CHECK(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, COMPUTE_IND, compIndBuffer));
     GL_CHECK(glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(compIndCmd), compIndCmd, GL_STREAM_DRAW));
-//    printError("Scene::SetupCompInd");
 }
 
 void Scene::SetupVoxelTextures() {
-
     // Generate textures for render to texture, only for debugging purposes
     if (voxel2DTex != 0) {
         GL_CHECK(glDeleteTextures(1, &voxel2DTex));
-    }
+}
     GL_CHECK(glGenTextures(1, &voxel2DTex));
     GL_CHECK(glBindTexture(GL_TEXTURE_2D_ARRAY, voxel2DTex));
     GL_CHECK(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R32UI, param.voxelRes, param.voxelRes, 3));
@@ -177,8 +171,6 @@ void Scene::SetupVoxelTextures() {
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-
-//    printError("Scene::SetupVoxelTextures 2D Array");
 
     // Create the 3D texture that contains the voxel data
     if (voxelTex != 0) {
@@ -194,8 +186,6 @@ void Scene::SetupVoxelTextures() {
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
-
-//    printError("Scene::SetupVoxelTextures 3D");
 }
 
 void Scene::SetupSceneTextures() {
@@ -205,6 +195,7 @@ void Scene::SetupSceneTextures() {
     if (sceneTex[0] != 0) {
         GL_CHECK(glDeleteTextures(2, sceneTex));
     }
+
     GL_CHECK(glGenTextures(2, sceneTex));
     GL_CHECK(glBindTexture(GL_TEXTURE_2D_ARRAY, sceneTex[0]));
     GL_CHECK(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA16F, origViewportSize[2], origViewportSize[3], 4));
@@ -212,8 +203,6 @@ void Scene::SetupSceneTextures() {
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-
-//    printError("Scene::SetupSceneTextures 2D Array");
 
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, sceneTex[1]));
     GL_CHECK(glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, origViewportSize[2], origViewportSize[3]));
@@ -224,7 +213,6 @@ void Scene::SetupSceneTextures() {
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_GEQUAL));
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE));
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
-//    printError("Scene::SetupSceneTextures Depth");
 
     if (sceneFBO == 0) {
         GL_CHECK(glGenFramebuffers(1, &sceneFBO));
@@ -245,8 +233,6 @@ void Scene::SetupSceneTextures() {
     }
 
     GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-
-//    printError("Scene::SetupSceneTextures FBO");
 }
 
 void Scene::SetupShadowTexture() {
@@ -261,8 +247,6 @@ void Scene::SetupShadowTexture() {
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_GEQUAL));
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE));
 
-//    printError("Scene::SetupShadowTexture Texture");
-
     GL_CHECK(glGenFramebuffers(1, &shadowFBO));
     GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO));
 
@@ -272,13 +256,7 @@ void Scene::SetupShadowTexture() {
         LOGE("Framebuffer error");
     }
 
-//    GLenum DrawBuffers[] = {GL_NONE};
-//    GL_CHECK(glDrawBuffers(1, DrawBuffers);
-
     GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-
-//    printError("Scene::SetupShadowTexture FBO");
-
 }
 
 void Scene::SetupShadowMatrix() {
@@ -301,8 +279,6 @@ void Scene::SetupShadowMatrix() {
     // Upload new params to GPU
     GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, SCENE, sceneBuffer));
     GL_CHECK(glBufferSubData(GL_UNIFORM_BUFFER, NULL, sizeof(SceneParam), &param));
-
-//    printError("Scene::SetupShadowMatrix");
 }
 
 void Scene::UpdateBuffers() {
@@ -315,8 +291,6 @@ void Scene::UpdateBuffers() {
     GL_CHECK(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, DRAW_IND, drawIndBuffer));
     GL_CHECK(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, COMPUTE_IND, compIndBuffer));
     GL_CHECK(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SPARSE_LIST, sparseListBuffer));
-
-//    printError("Scene::UpdateBuffers");
 }
 
 void Scene::CreateShadow() {
@@ -339,8 +313,6 @@ void Scene::CreateShadow() {
 
     GL_CHECK(glUseProgram(shaders->shadowMap));
 
-//    printError("Scene::CreateShadow Init");
-
     // Create the shadow map texture
     for (auto model = models->begin(); model != models->end(); model++) {
 
@@ -356,8 +328,6 @@ void Scene::CreateShadow() {
     // Restore the framebuffer
     GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     GL_CHECK(glViewport(origViewportSize[0], origViewportSize[1], origViewportSize[2], origViewportSize[3]));
-
-//    printError("Scene::CreateShadow After");
 }
 
 void Scene::RenderData() {
@@ -369,8 +339,6 @@ void Scene::RenderData() {
     GL_CHECK(glEnable(GL_CULL_FACE));
 
     GL_CHECK(glUseProgram(shaders->drawData));
-
-//    printError("Scene::RenderData Init");
 
     // Create the shadow map texture
     for (auto model = models->begin(); model != models->end(); model++) {
@@ -385,8 +353,6 @@ void Scene::RenderData() {
 
     // Restore the framebuffer
     GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-
-//    printError("Scene::RenderData After");
 }
 
 void Scene::Voxelize() {
@@ -399,7 +365,6 @@ void Scene::Voxelize() {
     GL_CHECK(glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, param.voxelRes));
     GL_CHECK(glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_HEIGHT, param.voxelRes));
     GL_CHECK(glViewport(0, 0, param.voxelRes, param.voxelRes));
-
 
     // Clear the last voxelization data
     // TODO: Clear the textures somehow (only interesting for dynamic updates)
@@ -437,8 +402,6 @@ void Scene::Voxelize() {
 
     GL_CHECK(glUseProgram(shaders->voxelize));
 
-//    printError("Scene::Voxelize Init");
-
     for (auto model = models->begin(); model != models->end(); model++) {
         // Don't draw models without texture if set to skip
         if (options.skipNoTexture && !(*model)->hasDiffuseTex()) {
@@ -454,14 +417,10 @@ void Scene::Voxelize() {
     // Restore the framebuffer
     GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     GL_CHECK(glViewport(origViewportSize[0], origViewportSize[1], origViewportSize[2], origViewportSize[3]));
-
-//    printError("Scene::Voxelize After");
 }
 
 void Scene::MipMap() {
     GL_CHECK(glUseProgram(shaders->mipmap));
-
-//    printError("Scene::Mipmap Init");
 
     for (GLuint level = 0; level < param.numMipLevels; level++) {
         GL_CHECK(glBindImageTexture(3, voxelTex, level, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI));
@@ -475,8 +434,6 @@ void Scene::MipMap() {
                         GL_COMMAND_BARRIER_BIT));
     }
     GL_CHECK(glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT));
-
-//    printError("Scene::Mipmap after");
 }
 
 void Scene::Draw() {
@@ -505,8 +462,6 @@ void Scene::DrawTextures() {
     GL_CHECK(glUniform1i(SUBROUTINE, param.voxelDraw));
 
     GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 3));
-
-//    printError("Scene::DrawTextures");
 }
 
 void Scene::DrawScene() {
@@ -521,8 +476,6 @@ void Scene::DrawScene() {
 
         (*model)->Draw();
     }
-
-//    printError("Scene::DrawScene");
 }
 
 void Scene::DrawVoxels() {
@@ -536,6 +489,4 @@ void Scene::DrawVoxels() {
 
     GL_CHECK(glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT,
                            (void *) (sizeof(DrawElementsIndirectCommand) * param.mipLevel)));
-
-//    printError("Scene::DrawVoxels");
 }

@@ -76,9 +76,6 @@ bool Program::Init() {
     GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, PROGRAM, programBuffer));
     GL_CHECK(glBufferData(GL_UNIFORM_BUFFER, sizeof(ProgramStruct), &param, GL_STREAM_DRAW));
 
-//    printError("Init program buffer");
-
-
     // Load shaders for drawing
     shaders.drawScene = loadShaders(SHADER_PATH("drawModel.vert"), SHADER_PATH("drawModel.frag"));
     shaders.drawData = loadShaders(SHADER_PATH("drawData.vert"), SHADER_PATH("drawData.frag"));
@@ -101,26 +98,18 @@ bool Program::Init() {
     // Create shadowmap
     shaders.shadowMap = loadShaders(SHADER_PATH("shadowMap.vert"), SHADER_PATH("shadowMap.frag"));
 
-//    printError("Load shaders");
-
     // TODO: Make this a separate function
     // Set constant uniforms for the drawing programs
     GL_CHECK(glUseProgram(shaders.drawScene));
     GL_CHECK(glUniform1i(DIFF_UNIT, 0));
     GL_CHECK(glUniform1i(MASK_UNIT, 1));
-//    printError("Set drawScene Constants");
 
     // Set constant uniforms for voxel programs
     GL_CHECK(glUseProgram(shaders.voxelize));
-//    printError("Set voxelize Program");
     GL_CHECK(glUniform1i(DIFF_UNIT, 0));
-//    printError("Set voxelize Constants 1");
     GL_CHECK(glUniform1i(VOXEL_TEXTURE, 2));
-//    printError("Set voxelize Constants 2");
     GL_CHECK(glUniform1i(VOXEL_DATA, 3));
-//    printError("Set voxelize Constants 3");
     GL_CHECK(glUniform1i(SHADOW_UNIT, 5));
-//    printError("Set voxelize Constants 4");
 
     // Set constant uniforms for simple triangle drawing
     GL_CHECK(glUseProgram(shaders.singleTriangle));
@@ -129,20 +118,15 @@ bool Program::Init() {
     GL_CHECK(glUniform1i(SHADOW_UNIT, 5));
     GL_CHECK(glUniform1i(SCENE_UNIT, 6));
     GL_CHECK(glUniform1i(SCENE_DEPTH, 7));
-//    printError("Set singleTriangle Constants");
 
     // Set constant uniforms for drawing the voxel overlay
     GL_CHECK(glUseProgram(shaders.voxel));
     GL_CHECK(glUniform1i(VOXEL_DATA, 3));
-//    printError("Set voxel Constants");
 
     // Set constant uniforms for calculating mipmaps
 //    GL_CHECK(glUseProgram(shaders.mipmap));
-//    printError("Set mipmap Program");
 //    GL_CHECK(glUniform1i(VOXEL_DATA, 3));
-//    printError("Set mipmap Constants 1");
 //    GL_CHECK(glUniform1i(VOXEL_DATA_NEXT, 4));
-//    printError("Set mipmap Constants 2");
 
 
     // Set up the camera
@@ -152,11 +136,8 @@ bool Program::Init() {
         return false;
     }
 
-//    printError("Init Camera");
-
     // Load Asset folders
     LoadAssetFolder("models");
-
 
     // Load scenes
     Scene* cornell = new Scene();
@@ -165,9 +146,6 @@ bool Program::Init() {
         return false;
     }
     scenes.push_back(cornell);
-
-//    printError("Init Scene Cornell");
-
 
 //    Scene *sponza = new Scene();
 //    if (!sponza->Init(MODEL_PATH("sponza.obj"), &shaders)) return false;
@@ -214,94 +192,6 @@ void Program::UploadParams() {
     GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, PROGRAM, programBuffer));
     GL_CHECK(glBufferSubData(GL_UNIFORM_BUFFER, NULL, sizeof(ProgramStruct), &param));
 }
-/*
-void Program::OnEvent(SDL_Event *Event) {
-	switch(Event->type) {
-		case SDL_QUIT:
-			isRunning = false;
-			break;
-		case SDL_WINDOWEVENT:
-			switch(Event->window.event) {
-				case SDL_WINDOWEVENT_RESIZED:
-					SDL_SetWindowSize(screen, Event->window.data1, Event->window.data2);
-					SDL_GetWindowSize(screen, &winWidth, &winHeight);
-					glViewport(0, 0, winWidth, winHeight);
-					TwWindowSize(winWidth, winHeight);
-					cam->SetFrustum();
-					GetCurrentScene()->SetupSceneTextures();
-					break;
-			}
-		case SDL_KEYDOWN:
-			OnKeypress(Event);
-			break;
-		case SDL_MOUSEMOTION:
-			OnMouseMove(Event);
-			break;
-		case SDL_MOUSEBUTTONDOWN:
-			TwMouseButton(TW_MOUSE_PRESSED, TW_MOUSE_LEFT);
-			break;
-		case SDL_MOUSEBUTTONUP:
-			TwMouseButton(TW_MOUSE_RELEASED, TW_MOUSE_LEFT);
-			break;
-		default:
-			break;
-	}
-}
-
-void Program::OnKeypress(SDL_Event *Event) {
-	TwKeyPressed(Event->key.keysym.sym, TW_KMOD_NONE);
-	switch(Event->key.keysym.sym) {
-		case SDLK_ESCAPE:
-			isRunning = false;
-			break;
-		case SDLK_SPACE:
-			break;
-		case SDLK_f:
-			cam->TogglePause();
-			SDL_SetRelativeMouseMode(SDL_GetRelativeMouseMode() ? SDL_FALSE : SDL_TRUE);
-			break;
-		case SDLK_g:
-			int isBarHidden;
-			TwGetParam(antBar, NULL, "iconified", TW_PARAM_INT32, 1, &isBarHidden);
-			if(isBarHidden) {
-				TwDefine(" VCT iconified=false ");
-			} else {
-				TwDefine(" VCT iconified=true ");
-			}
-			break;
-		default:
-			break;
-	}
-}
-
-void Program::OnMouseMove(SDL_Event *Event) {
-	if(!SDL_GetRelativeMouseMode())
-		TwMouseMotion(Event->motion.x, Event->motion.y);
-	else
-		cam->RotateCamera(Event->motion.xrel, Event->motion.yrel);
-}
-
-void Program::CheckKeyDowns() {
-	const Uint8 *keystate = SDL_GetKeyboardState(NULL);
-	if(keystate[SDL_SCANCODE_W]) {
-		cam->MoveForward(param.deltaT);
-	}
-	if(keystate[SDL_SCANCODE_S]) {
-		cam->MoveForward(-param.deltaT);
-	}
-	if(keystate[SDL_SCANCODE_A]) {
-		cam->MoveRight(-param.deltaT);
-	}
-	if(keystate[SDL_SCANCODE_D]) {
-		cam->MoveRight(param.deltaT);
-	}
-	if(keystate[SDL_SCANCODE_Q]) {
-		cam->MoveUp(param.deltaT);
-	}
-	if(keystate[SDL_SCANCODE_E]) {
-		cam->MoveUp(-param.deltaT);
-	}
-}*/
 
 void Program::SetAssetMgr(AAssetManager *mgr) {
     SetAssetsManager(mgr);
