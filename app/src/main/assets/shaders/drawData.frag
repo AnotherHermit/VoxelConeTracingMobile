@@ -9,8 +9,8 @@ in vec2 exTexCoords;
 in vec3 exTangent;
 //in vec3 exBiTangent;
 
-layout(location = 1) out vec4 outColor;
-layout(location = 0) out vec4 outPosition;
+layout(location = 0) out vec4 outColor;
+layout(location = 1) out vec4 outPosition;
 layout(location = 2) out vec4 outNormal;
 layout(location = 3) out vec4 outTangent;
 // TODO: Maximum value is 3, need to fix depenencies

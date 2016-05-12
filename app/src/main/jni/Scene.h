@@ -53,7 +53,7 @@ enum ViewDirection {
     VIEW_Z
 };
 
-// Voxel Resolutions used, over 512 not really needed (even 512 is stretching it on low level HW)
+// Voxel Resolutions used
 enum VoxelResolutions {
     RES16 = 16,
     RES32 = 32,

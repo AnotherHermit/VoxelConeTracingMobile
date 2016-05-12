@@ -23,7 +23,7 @@ Camera::Camera(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight, GLfl
     mspeed = 10.0f;
     rspeed = 0.001f;
     phi = 2.0f * (float)M_PI / 2.0f;
-    theta = (float)M_PI / 2.0f;
+    theta = 2.0f * (float)M_PI / 4.0f;
 
     frustumFar = farInit;
 

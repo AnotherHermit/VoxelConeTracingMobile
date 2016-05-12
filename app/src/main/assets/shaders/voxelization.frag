@@ -141,7 +141,7 @@ void main()
 	float bias = 0.005f*tan(acos(cosTheta));
 	bias = clamp(bias, 0.0f, 0.01f);
 
-	if(shadowDepth > lightCoord.z - bias) {
+	if((shadowDepth > lightCoord.z - bias) && (dot(normalize(scene.lightDir), normalize(exNormal)) > 0.0f)) {
 		data.light = uint(0x8);
 	}
 

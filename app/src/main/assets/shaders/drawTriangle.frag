@@ -92,24 +92,24 @@ vec4 ScenePosition() {
 //layout(index = 5) subroutine(DrawTexture)
 vec4 SceneNormal() {
 	vec4 normal = texture(sceneTex, vec3(exTexCoords, 2.0f));
-	//normal.xyz /= 2;
-	//normal.xyz += vec3(0.5f);
+//	normal.xyz /= 2.0f;
+//	normal.xyz += vec3(0.5f);
 	return normal;
 }
 
 //layout(index = 6) subroutine(DrawTexture)
 vec4 SceneTangent() {
 	vec4 tangent = texture(sceneTex, vec3(exTexCoords, 3.0f));
-	//tangent.xyz /= 2;
-	//tangent.xyz += vec3(0.5f);
+//	tangent.xyz /= 2.0f;
+//	tangent.xyz += vec3(0.5f);
 	return tangent;
 }
 
 //layout(index = 7) subroutine(DrawTexture)
 vec4 SceneBiTangent() {
 	vec4 biTangent = texture(sceneTex, vec3(exTexCoords, 4.0f));
-	//biTangent.xyz /= 2;
-	//biTangent.xyz += vec3(0.5f);
+//	biTangent.xyz /= 2;
+//	biTangent.xyz += vec3(0.5f);
 	return biTangent;
 }
 
@@ -198,7 +198,7 @@ vec4 ConeTrace60(vec3 startPos, vec3 dir, float aoDist, float maxDist, float vox
 	float sampleWeight;
 	float sampleLOD = 0.0f;
 	
-	for(float dist = voxelSize; dist < maxDist && accum.a < 1.0f;) {
+	for(float dist = 2.0f*voxelSize; dist < maxDist && accum.a < 1.0f;) {
 		samplePos = startPos + dir * dist;
 		sampleValue = voxelSampleLevel(samplePos, sampleLOD);
 		sampleWeight = 1.0f - accum.a;
@@ -220,20 +220,20 @@ vec4 DiffuseTrace () {
 	dir[4] = vec3(-0.509037f, 0.500000f, -0.700629f);
 	dir[5] = vec3(-0.823639f, 0.500000f,  0.267617f);
 
-	float sideWeight = 3.0f / 20.0f;
+	float sideWeight = 2.0f / 20.0f;
 	float weight[2];
-	weight[0] = 1.0f / 4.0f;
+	weight[0] = 10.0f / 20.0f;
 	weight[1] = sideWeight;
 	
 	float voxelSize = 1.0f / float(scene.voxelRes);
-	float maxDistance = 1.0f;
+	float maxDistance = 1.00f;
 	float aoDistance = 0.015f;
 	vec3 pos = ScenePosition().xyz;
 	vec3 norm = SceneNormal().xyz;
 	vec3 tang = SceneTangent().xyz;
-	vec3 bitang = SceneBiTangent().xyz;
+	vec3 bitang = normalize(cross(norm, tang)); //SceneBiTangent().xyz;
 
-	pos += norm * voxelSize * 2.0f;
+	pos += norm * voxelSize * 10.0f;
 
 	vec4 total = vec4(0.0f);
 	for(int i = 0; i < 6; i++) {

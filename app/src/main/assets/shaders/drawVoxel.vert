@@ -8,7 +8,7 @@ out vec4 outPosition;
 out vec3 outNormal;
 out vec4 outColor;
 
-layout(location = 4) uniform highp usampler3D voxelData;
+layout(binding = 3) uniform highp usampler3D voxelData;
 
 struct Camera {
 	mat4 WTVmatrix;
@@ -77,7 +77,7 @@ void main(void)
 
 	VoxelData data = unpackARGB8(textureLod(voxelData, voxelPos, float(scene.mipLevel)).r);
 	data.color.rgb *= float(sign(int(data.light)));
-	outColor = data.color;
+	outColor = /*vec4(data.color.rgb * 0.5f, 1.0f);//*/ data.color;
 	
 	outNormal = mat3(cam.WTVmatrix) * inNormal;
 	vec4 temp = cam.WTVmatrix * scene.MTWmatrix * vec4(inPosition / size + 2.0f * voxelPos - vec3(1.0f), 1.0f);

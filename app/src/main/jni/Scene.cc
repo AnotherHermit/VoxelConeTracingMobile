@@ -16,16 +16,16 @@
 
 Scene::Scene() {
     options.skipNoTexture = false;
-    options.drawTextures = false;
+    options.drawTextures = true;
     options.drawModels = false;
     options.drawVoxels = true;
     options.shadowRes = 512;
 
     param.lightDir = glm::vec3(0.58f, 0.58f, 0.58f);
-    param.voxelRes = 128;
-    param.voxelLayer = 3;
-    param.voxelDraw = 1;
-    param.view = 0;
+    param.voxelRes = RES256;
+    param.voxelLayer = 0;
+    param.voxelDraw = 10;
+    param.view = VIEW_X;
     param.numMipLevels = (GLuint) log2(param.voxelRes);
     param.mipLevel = 0;
 
@@ -428,8 +428,8 @@ void Scene::MipMap() {
     GL_CHECK(glUseProgram(shaders->mipmap));
 
     for (GLuint level = 0; level < param.numMipLevels; level++) {
-        GL_CHECK(glBindImageTexture(3, voxelTex, level, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI));
-        GL_CHECK(glBindImageTexture(4, voxelTex, level + 1, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI));
+        GL_CHECK(glBindImageTexture(3, voxelTex, level, GL_TRUE, 0, GL_READ_WRITE, GL_R32UI));
+        GL_CHECK(glBindImageTexture(4, voxelTex, level + 1, GL_TRUE, 0, GL_READ_WRITE, GL_R32UI));
 
         GL_CHECK(glUniform1ui(CURRENT_LEVEL, level));
 
@@ -437,6 +437,10 @@ void Scene::MipMap() {
 
         GL_CHECK(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT |
                         GL_COMMAND_BARRIER_BIT));
+
+        GLint* temp = (GLint*)GL_CHECK(glMapBufferRange(GL_DISPATCH_INDIRECT_BUFFER, sizeof(ComputeIndirectCommand) * level, sizeof(ComputeIndirectCommand), GL_MAP_READ_BIT));
+        LOGD("Compute Indirect Buffer level %i: %i, %i, %i", level, temp[0],temp[1],temp[2]);
+        GL_CHECK(glUnmapBuffer(GL_DISPATCH_INDIRECT_BUFFER));
     }
     GL_CHECK(glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT));
 }

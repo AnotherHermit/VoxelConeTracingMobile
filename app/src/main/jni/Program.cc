@@ -21,7 +21,7 @@ Program::Program() {
     time.startTimer();
 
     // Set program parameters
-    cameraStartPos = glm::vec3(0.0, 0.0, 5.0);
+    cameraStartPos = glm::vec3(0.0f, 0.0f, 3.0f);
     cameraFrustumFar = 500.0f;
 
     sceneSelect = 0;
@@ -41,14 +41,14 @@ void Program::Step() {
 }
 
 void Program::Resize(int width, int height) {
-    LOGD("Resize called");
+    LOGD("Resize called, width: %d, height: %d", width, height);
 
     winWidth = width;
     winHeight = height;
     glViewport(0,0,width,height);
     cam->SetFrustum();
     GetCurrentScene()->SetupSceneTextures();
-    GetCurrentScene()->Voxelize();
+//    GetCurrentScene()->Voxelize();
 }
 
 /*
@@ -69,7 +69,7 @@ bool Program::Init() {
     //glEnable(GL_TEXTURE_3D);
     GL_CHECK(glEnable(GL_BLEND));
     GL_CHECK(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    GL_CHECK(glClearColor(0.0f, 0.4f, 0.0f, 1.0f));
+    GL_CHECK(glClearColor(0.3f, 0.0f, 0.3f, 1.0f));
 
     dumpInfo();
 
@@ -125,7 +125,7 @@ bool Program::Init() {
     cornell->CreateShadow();
     cornell->RenderData();
     cornell->Voxelize();
-//    cornell->MipMap();
+    cornell->MipMap();
 
 //    sponza->CreateShadow();
 //    sponza->RenderData();
