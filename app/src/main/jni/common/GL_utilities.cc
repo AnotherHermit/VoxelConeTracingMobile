@@ -71,11 +71,6 @@ char *readFile(const char *file) {
     }
 
     length = (size_t)AAsset_getLength(asset);
-    if (length < 0) {
-        LOGE("ftell reported negative length!\n");
-        return NULL;
-    }
-
     buf = (char *) malloc(length +
                           1); // Allocate a buffer for the entire length of the file and a null terminator
     if (buf == NULL) {
@@ -543,6 +538,68 @@ void useFBO(FBOstruct *out, FBOstruct *in1, FBOstruct *in2) {
 
 
 // ===== Timer =====
+
+//PFNGLGENQUERIESEXTPROC glGenQueriesEXT_2;
+//PFNGLDELETEQUERIESEXTPROC glDeleteQueriesEXT_2;
+//PFNGLISQUERYEXTPROC glIsQueryEXT_2;
+//PFNGLBEGINQUERYEXTPROC glBeginQueryEXT_2;
+//PFNGLENDQUERYEXTPROC glEndQueryEXT_2;
+//PFNGLQUERYCOUNTEREXTPROC glQueryCounterEXT_2;
+//PFNGLGETQUERYIVEXTPROC glGetQueryivEXT_2;
+//
+//PFNGLGETQUERYOBJECTIVEXTPROC glGetQueryObjectivEXT_2;
+//PFNGLGETQUERYOBJECTUIVEXTPROC glGetQueryObjectuivEXT_2;
+//PFNGLGETQUERYOBJECTI64VEXTPROC glGetQueryObjecti64vEXT_2;
+//PFNGLGETQUERYOBJECTUI64VEXTPROC glGetQueryObjectui64vEXT_2;
+
+void InitTimer() {
+//    glGenQueriesEXT_2 = (PFNGLGENQUERIESEXTPROC) eglGetProcAddress("glGenQueriesEXT");
+//    glDeleteQueriesEXT_2 = (PFNGLDELETEQUERIESEXTPROC) eglGetProcAddress("glDeleteQueriesEXT");
+//    glIsQueryEXT_2 = (PFNGLISQUERYEXTPROC) eglGetProcAddress("glIsQueryEXT");
+//    glBeginQueryEXT_2 = (PFNGLBEGINQUERYEXTPROC) eglGetProcAddress("glBeginQueryEXT");
+//    glEndQueryEXT_2 = (PFNGLENDQUERYEXTPROC) eglGetProcAddress("glEndQueryEXT");
+//    glQueryCounterEXT_2 = (PFNGLQUERYCOUNTEREXTPROC) eglGetProcAddress("glQueryCounterEXT");
+//    glGetQueryivEXT_2 = (PFNGLGETQUERYIVEXTPROC) eglGetProcAddress("glGetQueryivEXT");
+//
+//    glGetQueryObjectivEXT_2 = (PFNGLGETQUERYOBJECTIVEXTPROC) eglGetProcAddress("glGetQueryObjectivEXT");
+//    glGetQueryObjectuivEXT_2 = (PFNGLGETQUERYOBJECTUIVEXTPROC) eglGetProcAddress("glGetQueryObjectuivEXT");
+//    glGetQueryObjecti64vEXT_2 = (PFNGLGETQUERYOBJECTI64VEXTPROC) eglGetProcAddress("glGetQueryObjecti64vEXT");
+//    glGetQueryObjectui64vEXT_2 = (PFNGLGETQUERYOBJECTUI64VEXTPROC) eglGetProcAddress("glGetQueryObjectui64vEXT");
+}
+
+//GLTimer::GLTimer() {
+//
+//
+//    glGenQueriesEXT_2(1, &queryID);
+//    time = 0;
+//}
+//
+//GLTimer::~GLTimer() {
+//    glDeleteQueriesEXT_2(1, &queryID);
+//}
+//
+//void GLTimer::startTimer() {
+//    glBeginQueryEXT_2(GL_TIME_ELAPSED_EXT, queryID);
+//}
+//
+//void GLTimer::endTimer() {
+//    glEndQueryEXT_2(GL_TIME_ELAPSED_EXT);
+//
+//    GLint done = 0;
+//    while (!done) {
+//        glGetQueryObjectivEXT_2(queryID, GL_QUERY_RESULT_AVAILABLE_EXT, &done);
+//    }
+//    glGetQueryObjectui64vEXT_2(queryID, GL_QUERY_RESULT_EXT, &time);
+//}
+//
+//GLfloat GLTimer::getTime() {
+//    return (GLfloat)time / 1000.0f;
+//}
+//
+//GLfloat GLTimer::getTimeMS() {
+//    return (GLfloat)time / 1000000.0f;
+//}
+
 
 Timer::Timer() {
     time = 0;

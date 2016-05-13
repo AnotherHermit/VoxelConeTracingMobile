@@ -29,6 +29,7 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
 #include <GLES2/gl2ext.h>
+#include <EGL/egl.h>
 
 #include <chrono>
 
@@ -162,6 +163,23 @@ enum SUBROUTINE_INDICES {
 };
 
 // ===== Timers =====
+
+void InitTimer();
+
+class GLTimer {
+private:
+    GLuint queryID;
+    GLuint64 time;
+
+public:
+    GLTimer();
+    ~GLTimer();
+
+    void startTimer();
+    void endTimer();
+    GLfloat getTime();
+    GLfloat getTimeMS();
+};
 
 class Timer {
 public:

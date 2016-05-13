@@ -26,6 +26,7 @@ private:
     GLint winWidth, winHeight;
 
     Timer time;
+//    GLTimer glTime;
     GLfloat FPS;
     ProgramStruct param;
     GLuint programBuffer;

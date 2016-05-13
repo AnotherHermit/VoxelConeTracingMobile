@@ -106,10 +106,17 @@ vec4 SceneTangent() {
 }
 
 //layout(index = 7) subroutine(DrawTexture)
+vec4 SceneBiTangent(vec3 normal, vec3 tangent) {
+    return vec4(normalize(cross(normal, tangent)), 1.0f);
+}
+
 vec4 SceneBiTangent() {
-	vec4 biTangent = texture(sceneTex, vec3(exTexCoords, 4.0f));
-//	biTangent.xyz /= 2;
-//	biTangent.xyz += vec3(0.5f);
+//	vec4 biTangent = texture(sceneTex, vec3(exTexCoords, 4.0f));
+    vec4 normal = texture(sceneTex, vec3(exTexCoords, 2.0f));
+    vec4 tangent = texture(sceneTex, vec3(exTexCoords, 3.0f));
+    vec4 biTangent = SceneBiTangent(normal.xyz, tangent.xyz);
+	biTangent.xyz /= 2.0f;
+	biTangent.xyz += vec3(0.5f);
 	return biTangent;
 }
 
@@ -142,16 +149,28 @@ vec4 voxelSampleLevel(vec3 position, float level) {
 	total.color = vec4(0.0f);
 	total.count = uint(0);
 	total.light = uint(0);
-	float count = 0.0f;
+	float count = 1.0f;
 	for(int i = 0; i < 8; i++) {
 		vec3 voxelPos = (positionWhole + offsets[i]) / scale;
-		VoxelData voxel = unpackARGB8(textureLod(voxelData, voxelPos, mip).r);
-		vec3 temp = (1.0f - offsets[i]) * (1.0f - intpol) + offsets[i] * intpol; 
-		total.color += voxel.color * temp.x * temp.y * temp.z * float(sign(int(voxel.light)));
-		count += float(voxel.light) * float(sign(int(voxel.count))) * temp.x * temp.y * temp.z;
+		vec3 offset = mix(1.0f - offsets[i], offsets[i], intpol);
+        float factor = offset.x * offset.y * offset.z;
+
+        VoxelData voxel = unpackARGB8(textureLod(voxelData, voxelPos, mip).r);
+        if(any(greaterThan(voxelPos, vec3(1.0f))) || any(lessThan(voxelPos, vec3(0.0f)))) {
+//            count -= factor;
+            factor = 0.0f;
+        }
+
+		total.color.rgb += voxel.color.rgb * factor * float(sign(int(voxel.light)));
+		total.color.a += voxel.color.a * factor;
 	}
 
-	return total.color;//vec4(count);
+    vec4 result[2];
+    result[0] = vec4(0.0f);
+    result[1] = total.color / count;
+    int index = int(count > 0.01f);
+
+	return result[index];
 }
 
 vec4 voxelSampleBetween(vec3 position, float level) {
@@ -162,7 +181,7 @@ vec4 voxelSampleBetween(vec3 position, float level) {
 	vec4 voxelLow = voxelSampleLevel(position, levelLow);
 	vec4 voxelHigh = voxelSampleLevel(position, levelHigh);
 
-	return voxelLow * (1.0f - intPol) + voxelHigh * intPol;
+	return mix(voxelLow, voxelHigh, intPol);
 }
 
 vec4 ConeTrace(vec3 startPos, vec3 dir, float coneRatio, float maxDist,	float voxelSize) {
@@ -198,9 +217,9 @@ vec4 ConeTrace60(vec3 startPos, vec3 dir, float aoDist, float maxDist, float vox
 	float sampleWeight;
 	float sampleLOD = 0.0f;
 	
-	for(float dist = 2.0f*voxelSize; dist < maxDist && accum.a < 1.0f;) {
+	for(float dist = voxelSize; dist < maxDist && accum.a < 1.0f;) {
 		samplePos = startPos + dir * dist;
-		sampleValue = voxelSampleLevel(samplePos, sampleLOD);
+        sampleValue = voxelSampleLevel(samplePos, sampleLOD);
 		sampleWeight = 1.0f - accum.a;
 		accum += sampleValue * sampleWeight;
 		opacity = (dist < aoDist) ? accum.a : opacity;
@@ -220,20 +239,20 @@ vec4 DiffuseTrace () {
 	dir[4] = vec3(-0.509037f, 0.500000f, -0.700629f);
 	dir[5] = vec3(-0.823639f, 0.500000f,  0.267617f);
 
-	float sideWeight = 2.0f / 20.0f;
+	float sideWeight = 3.0f / 20.0f;
 	float weight[2];
-	weight[0] = 10.0f / 20.0f;
+	weight[0] = 5.0f / 20.0f;
 	weight[1] = sideWeight;
 	
-	float voxelSize = 1.0f / float(scene.voxelRes);
+	float voxelSize = 2.5f / float(scene.voxelRes);
 	float maxDistance = 1.00f;
-	float aoDistance = 0.015f;
+	float aoDistance = 0.045f;
 	vec3 pos = ScenePosition().xyz;
 	vec3 norm = SceneNormal().xyz;
 	vec3 tang = SceneTangent().xyz;
-	vec3 bitang = normalize(cross(norm, tang)); //SceneBiTangent().xyz;
+	vec3 bitang = SceneBiTangent(norm, tang).xyz;
 
-	pos += norm * voxelSize * 10.0f;
+	pos += norm * voxelSize * 2.0f;
 
 	vec4 total = vec4(0.0f);
 	for(int i = 0; i < 6; i++) {
@@ -250,9 +269,12 @@ vec4 AngleTrace(vec3 dir, float theta) {
 	
 	vec3 pos = ScenePosition().xyz;
 	vec3 norm = SceneNormal().xyz;
-	pos += norm * voxelSize * 2.0f;
+	pos += norm * voxelSize * 8.0f;
 
-	
+//	if(dot(norm, dir) < 0.0f) {
+//	    return vec4(vec3(0.0f), 1.0f);
+//	}
+
 	float halfTheta = sin(radians(theta)/2.0f);
 	float coneRatio = halfTheta / (1.0f - halfTheta);
 	return ConeTrace(pos, dir, coneRatio, maxDistance, voxelSize);
@@ -270,7 +292,7 @@ vec4 DiffuseBounce() {
 
 //layout(index = 11) subroutine(DrawTexture)
 vec4 SoftShadows() {
-	vec4 result = AngleTrace(scene.lightDir, 5.0f); 
+	vec4 result = AngleTrace(scene.lightDir, 5.0f);
 	vec4 color = SceneColor();
 	return vec4(color.rgb * (1.0f - result.a), 1.0f);
 }
@@ -280,7 +302,7 @@ vec4 Combination() {
 	vec4 diffuse = DiffuseTrace();
 	vec4 shadows = AngleTrace(scene.lightDir, 5.0f);
 	vec4 color = SceneColor();
-	return vec4((color.rgb * 0.9f + diffuse.rgb * 0.4f) * (1.0f - shadows.a) + diffuse.rgb * shadows.a * diffuse.a * 0.6f , 1.0f);
+	return vec4((color.rgb  * (1.0f - shadows.a) + diffuse.rgb * color.rgb * shadows.a), 1.0f);
 }
 
 //layout(location = 0) subroutine uniform DrawTexture SampleTexture;

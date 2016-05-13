@@ -24,7 +24,7 @@ Scene::Scene() {
     param.lightDir = glm::vec3(0.58f, 0.58f, 0.58f);
     param.voxelRes = RES256;
     param.voxelLayer = 0;
-    param.voxelDraw = 10;
+    param.voxelDraw = 12;
     param.view = VIEW_X;
     param.numMipLevels = (GLuint) log2(param.voxelRes);
     param.mipLevel = 0;

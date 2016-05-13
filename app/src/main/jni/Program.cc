@@ -35,9 +35,14 @@ Program::~Program() {
 
 void Program::Step() {
     //LOGD("Step called");
-
+//    glTime.startTimer();
     Update();
+//    glTime.endTimer();
+//    LOGD("Update time: %f ms", glTime.getTimeMS());
+//    glTime.startTimer();
     Render();
+//    glTime.endTimer();
+//    LOGD("Draw time: %f ms", glTime.getTimeMS());
 }
 
 void Program::Resize(int width, int height) {
@@ -98,6 +103,8 @@ bool Program::Init() {
 
     // Create shadowmap
     shaders.shadowMap = loadShaders(SHADER_PATH("shadowMap.vert"), SHADER_PATH("shadowMap.frag"));
+
+    InitTimer();
 
     // Set up the camera
     cam = new Camera(cameraStartPos, &winWidth, &winHeight, cameraFrustumFar);

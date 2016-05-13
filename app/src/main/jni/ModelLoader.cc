@@ -236,13 +236,20 @@ void ModelLoader::CalculateTangents() {
         for (auto normal = shape->mesh.normals.begin();
              normal != shape->mesh.normals.end() - 3; normal += 3) {
             glm::vec3 currentNormal = glm::normalize(glm::vec3(normal[0], normal[1], normal[2]));
+            glm::vec3 yVec = glm::vec3(0.0f, 1.0f, 0.0f);
+            glm::vec3 zVec = glm::vec3(0.0f, 0.0f, 1.0f);
+            glm::vec3 tempTan1 = glm::cross(yVec, currentNormal);
+            glm::vec3 tempTan2 = glm::cross(currentNormal, zVec);
 
             float a = normal[0];
             float b = normal[1];
             float c = normal[2];
 
-            glm::vec3 tangCand[] = {glm::vec3(-b - c, a, a), glm::vec3(c, c, -a - b)};
-            int tangSelect = int((c > glm::epsilon<float>()) && (-a - b > glm::epsilon<float>()));
+//            glm::vec3 tangCand[] = {glm::vec3(-b - c, a, a), glm::vec3(c, c, -a - b)};
+//            int tangSelect = int((c > glm::epsilon<float>()) && (-a - b > glm::epsilon<float>()));
+            glm::vec3 tangCand[] = {tempTan1, tempTan2};
+//            float res = glm::length(tempTan1);
+            int tangSelect = int(glm::length(tempTan1) < glm::epsilon<float>());
             glm::vec3 tangent = glm::normalize(tangCand[tangSelect]);
             glm::vec3 bitangent = normalize(cross(currentNormal, tangent));
 
