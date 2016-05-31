@@ -11,16 +11,18 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:supportsRtl="true">
+        android:hasCode="false">
         <activity
-            android:name=".MainActivity"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:name="android.app.NativeActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:label="@string/title_activity_main">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="voxels"/>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
