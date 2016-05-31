@@ -16,12 +16,14 @@
 #include <stdio.h>
 #include <iostream>
 #include "GL_utilities.h"
+#include <jni.h>
 
 
 AAssetManager* mgr;
 
 void SetAssetsManager(AAssetManager* initMgr) {
     mgr = initMgr;
+    //const char* temp = getenv("EXTERNAL_STORAGE");
 }
 
 // Load asset folder to file
