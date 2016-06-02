@@ -17,56 +17,49 @@
 
 // Uniform struct, needs to be arranged in multiples of 4 * 4 B for tight packing on GPU
 struct CameraParam {
-    glm::mat4 WTVmatrix;    // 16 * 4 B ->   0 -  15
-    glm::mat4 VTPmatrix;    // 16 * 4 B ->  16 -  31
-    glm::vec3 position;        //  3 * 4 B ->  32 -  34
+	glm::mat4 WTVmatrix;    // 16 * 4 B ->   0 -  15
+	glm::mat4 VTPmatrix;    // 16 * 4 B ->  16 -  31
+	glm::vec3 position;        //  3 * 4 B ->  32 -  34
 };
 
 class Camera {
 private:
-    glm::vec3 lookp, yvec;
-    glm::vec3 heading, side, up;
-    GLfloat mspeed, rspeed, phi, theta;
-    GLfloat frustumFar;
+	glm::vec3 lookp, yvec;
+	glm::vec3 heading, side, up;
+	GLfloat mspeed, rspeed, phi, theta;
+	GLfloat frustumFar;
 
-    bool isPaused;
-    bool needUpdate;
+	bool isPaused;
+	bool needUpdate;
 
-    GLuint cameraBuffer;
-    GLint *winWidth, *winHeight;
+	GLuint cameraBuffer;
+	GLint *winWidth, *winHeight;
 
-    CameraParam param;
+	CameraParam param;
 
-    void Update();
-
-    void UploadParams();
+	void Update();
+	void UploadParams();
 
 public:
-    Camera(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight, GLfloat farInit);
+	Camera(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight,
+				 GLfloat farInit);
 
-    bool Init();
+	bool Init();
+	void SetFrustum();
+	void ResetCamera(glm::vec3 pos);
+	void MoveForward(GLfloat deltaT);
+	void MoveRight(GLfloat deltaT);
+	void MoveUp(GLfloat deltaT);
+	void RotateCamera(GLint dx, GLint dy);
+	void UpdateCamera();
 
-    void SetFrustum();
+	void TogglePause() { isPaused = !isPaused; }
 
-    void ResetCamera(glm::vec3 pos);
+	GLfloat *GetSpeedPtr() { return &mspeed; }
 
-    void MoveForward(GLfloat deltaT);
+	GLfloat *GetRotSpeedPtr() { return &rspeed; }
 
-    void MoveRight(GLfloat deltaT);
-
-    void MoveUp(GLfloat deltaT);
-
-    void RotateCamera(GLint dx, GLint dy);
-
-    void UpdateCamera();
-
-    void TogglePause() { isPaused = !isPaused; }
-
-    GLfloat *GetSpeedPtr() { return &mspeed; }
-
-    GLfloat *GetRotSpeedPtr() { return &rspeed; }
-
-    CameraParam *GetCameraInfo() { return &param; }
+	CameraParam *GetCameraInfo() { return &param; }
 };
 
 #endif // CAMERA_H
