@@ -7,16 +7,27 @@ model {
 
         defaultConfig {
             applicationId = 'se.anotherhermit.voxels'
-            minSdkVersion.apiLevel    = 21
+            minSdkVersion.apiLevel    = 23
             targetSdkVersion.apiLevel = 23
         }
         ndk {
-            moduleName  = 'gles3jni'
+            moduleName  = 'voxels'
             toolchain = 'clang'
             stl         = 'gnustl_static'
             cppFlags.addAll(['-std=c++11', '-Wall', '-fno-rtti', '-fno-exceptions'])
+            cppFlags.addAll(['-I' + file('src/main/jni/ndk_helper'),
+                             '-I' + file('src/main/jni/common')])
             CFlags.addAll(['-Wall'])
-            ldLibs.addAll(['log','GLESv3', 'EGL'])
+            ldLibs.addAll(['log','GLESv3', 'EGL','android'])
+        }
+        sources {
+            main {
+                jni {
+                    dependencies {
+                        project ':nativeactivity' linkage 'static'
+                    }
+                }
+            }
         }
         // Turn on hard float support in armeabi-v7a
         abis {
