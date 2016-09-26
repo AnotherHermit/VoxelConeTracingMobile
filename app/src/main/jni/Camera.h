@@ -17,56 +17,103 @@
 
 // Uniform struct, needs to be arranged in multiples of 4 * 4 B for tight packing on GPU
 struct CameraParam {
-    glm::mat4 WTVmatrix;    // 16 * 4 B ->   0 -  15
-    glm::mat4 VTPmatrix;    // 16 * 4 B ->  16 -  31
-    glm::vec3 position;        //  3 * 4 B ->  32 -  34
+	glm::mat4 WTVmatrix;    // 16 * 4 B ->   0 -  15
+	glm::mat4 VTPmatrix;    // 16 * 4 B ->  16 -  31
+	glm::vec3 position;        //  3 * 4 B ->  32 -  34
 };
 
 class Camera {
-private:
-    glm::vec3 lookp, yvec;
-    glm::vec3 heading, side, up;
-    GLfloat mspeed, rspeed, phi, theta;
-    GLfloat frustumFar;
+protected:
+	glm::vec3 lookp, yvec;
+	glm::vec3 startPos;
+	GLfloat frustumFar, ratioW, ratioH;
 
-    bool isPaused;
-    bool needUpdate;
+	bool isPaused;
+	bool needUpdate;
 
-    GLuint cameraBuffer;
-    GLint *winWidth, *winHeight;
+	GLuint cameraBuffer;
+	GLint *winWidth, *winHeight;
 
-    CameraParam param;
+	CameraParam param;
 
-    void Update();
+	virtual void UpdateParams(GLfloat deltaT) = 0;
 
-    void UploadParams();
+	void UpdateFrustum();
+
+	void UploadParams();
 
 public:
-    Camera(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight, GLfloat farInit);
+	Camera();
 
-    bool Init();
+	bool Init(GLint *screenWidth, GLint
+	*screenHeight, GLfloat farInit);
 
-    void SetFrustum();
+	virtual void Reset();
 
-    void ResetCamera(glm::vec3 pos);
+	void Resize();
 
-    void MoveForward(GLfloat deltaT);
+	void Update(GLfloat deltaT = 1.0f);
 
-    void MoveRight(GLfloat deltaT);
+	void TogglePause() { isPaused = !isPaused; }
 
-    void MoveUp(GLfloat deltaT);
+	CameraParam *GetCameraInfo() { return &param; }
+};
 
-    void RotateCamera(GLint dx, GLint dy);
+class FPCamera : public Camera {
+private:
+	glm::vec3 forward, right, up, moveVec;
+	GLfloat mspeed, rspeed, phi, theta;
 
-    void UpdateCamera();
+	virtual void UpdateParams(GLfloat deltaT = 1.0f);
 
-    void TogglePause() { isPaused = !isPaused; }
+public:
+	FPCamera();
 
-    GLfloat *GetSpeedPtr() { return &mspeed; }
+	bool Init(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight,
+						GLfloat farInit);
 
-    GLfloat *GetRotSpeedPtr() { return &rspeed; }
+	void Move(glm::vec3 vec);
 
-    CameraParam *GetCameraInfo() { return &param; }
+	void MoveForward();
+	void MoveBackward();
+
+	void MoveRight();
+	void MoveLeft();
+
+	void MoveUp();
+	void MoveDown();
+
+	void RotateCamera(GLint dx, GLint dy);
+
+	void RotateCamera(GLfloat dx, GLfloat dy);
+
+	virtual void Reset();
+
+	GLfloat *GetSpeedPtr() { return &mspeed; }
+
+	GLfloat *GetRotSpeedPtr() { return &rspeed; }
+};
+
+class OrbitCamera : public Camera {
+private:
+	glm::vec3 target, startTarget;
+	GLfloat distance;
+
+	virtual void UpdateParams(GLfloat deltaT = 1.0f);
+
+public:
+	OrbitCamera();
+
+	virtual bool Init(glm::vec3 initTarget, GLfloat initDistance, GLint
+	*screenWidth,
+										GLint *screenHeight,
+										GLfloat farInit);
+
+	virtual void Reset();
+
+	void RotateCamera(GLfloat dx, GLfloat dy);
+
+	void Zoom(GLfloat factor);
 };
 
 #endif // CAMERA_H

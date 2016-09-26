@@ -12,6 +12,10 @@ JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_init(JNIEnv *env, j
 JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_resize(JNIEnv *env, jobject obj,
                                                                     jint width, jint height);
 JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_step(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_touch(JNIEnv *env,
+                                                               jobject obj,
+																																	 jfloat dx,
+																																	 jfloat dy);
 };
 
 JNIEXPORT void JNICALL
@@ -49,3 +53,9 @@ Java_se_anotherhermit_voxels_GLESView_step(JNIEnv *env, jobject obj) {
     }
 }
 
+JNIEXPORT void JNICALL
+Java_se_anotherhermit_voxels_GLESView_touch(JNIEnv *env, jobject obj, jfloat
+dx, jfloat dy) {
+    LOGD("I'm touched, %f, %f!", dx, dy);
+	program->Pan(dx, dy);
+}

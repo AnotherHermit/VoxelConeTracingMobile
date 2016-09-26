@@ -60,6 +60,9 @@ public:
     void Resize(int width, int height);
     void Step();
 
+    // Camera controlls
+    void Pan(float dx, float dy);
+
     //void timeUpdate();
     //void OnEvent(SDL_Event *Event);
     //void OnKeypress(SDL_Event *Event);

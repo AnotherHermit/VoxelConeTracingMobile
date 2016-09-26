@@ -13,110 +13,179 @@
 
 #include <iostream>
 
-Camera::Camera(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
-    isPaused = true;
-    needUpdate = true;
+//
+//
+// CAMERA
+//
+//
 
-    param.position = startpos;
-    yvec = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera::Camera() {
+	isPaused = false;
+	needUpdate = true;
 
-    mspeed = 10.0f;
-    rspeed = 0.001f;
-    phi = 2.0f * (float)M_PI / 2.0f;
-    theta = 2.0f * (float)M_PI / 4.0f;
-
-    frustumFar = farInit;
-
-    winWidth = screenWidth;
-    winHeight = screenHeight;
-
-    SetFrustum();
-    Update();
+	yvec = glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
-bool Camera::Init() {
-    GL_CHECK(glGenBuffers(1, &cameraBuffer));
-    GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA, cameraBuffer));
-    GL_CHECK(glBufferData(GL_UNIFORM_BUFFER, sizeof(CameraParam), NULL, GL_STREAM_DRAW));
+bool Camera::Init(GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
+	winHeight = screenHeight;
+	winWidth = screenWidth;
+	frustumFar = farInit;
 
-    // Set starting WTVmatrix
-    UploadParams();
+	Resize();
 
-    return true;
+	GL_CHECK(glGenBuffers(1, &cameraBuffer));
+	GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA, cameraBuffer));
+	GL_CHECK(glBufferData(GL_UNIFORM_BUFFER, sizeof(CameraParam), NULL,
+												GL_STREAM_DRAW));
+
+	// Set starting WTVmatrix
+	Update();
+
+	return true;
 }
 
-void Camera::ResetCamera(glm::vec3 pos) {
-    param.position = pos;
-
-    phi = 7.0f * (float)M_PI / 4.0f;
-    theta = (float)M_PI / 2.0f;
+void Camera::Reset() {
+	param.position = startPos;
 }
 
-void Camera::SetFrustum() {
-    GLfloat ratio = (GLfloat) *winWidth / (GLfloat) *winHeight;
-    GLfloat width = (ratio > 1.0f) ? 1.0f : ratio;
-    GLfloat height = (ratio > 1.0f) ? 1.0f / ratio : 1.0f;
+void Camera::Resize() {
+	GLfloat ratio = (GLfloat) *winWidth / (GLfloat) *winHeight;
+	ratioW = (ratio > 1.0f) ? 1.0f : ratio;
+	ratioH = (ratio > 1.0f) ? 1.0f / ratio : 1.0f;
 
-    param.VTPmatrix = glm::frustum(-width, width, -height, height, 1.0f, frustumFar);
-
-    needUpdate = true;
+	needUpdate = true;
 }
 
-
-void Camera::Update() {
-    // Update directions
-    heading = glm::normalize(glm::vec3(-sin(theta) * sin(phi), cos(theta), sin(theta) * cos(phi)));
-    side = glm::normalize(glm::cross(heading, yvec));
-    up = glm::normalize(glm::cross(side, heading));
-
-    // Update camera matrix
-    lookp = param.position + heading;
-    param.WTVmatrix = lookAt(param.position, lookp, yvec);
+void Camera::UpdateFrustum() {
+	param.VTPmatrix = glm::frustum(-ratioW, ratioW, -ratioH, ratioH, 1.0f,
+																 frustumFar);
 }
 
 void Camera::UploadParams() {
-    GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA, cameraBuffer));
-    GL_CHECK(glBufferSubData(GL_UNIFORM_BUFFER, NULL, sizeof(CameraParam), &param));
+	GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA, cameraBuffer));
+	GL_CHECK(glBufferSubData(GL_UNIFORM_BUFFER, NULL, sizeof(CameraParam), &param));
 }
 
-void Camera::UpdateCamera() {
-    if (needUpdate) {
-        Update();
-        UploadParams();
-    }
-    needUpdate = false;
+void Camera::Update(GLfloat deltaT) {
+	if (needUpdate) {
+		UpdateParams(deltaT);
+		UpdateFrustum();
+		UploadParams();
+	}
+	needUpdate = false;
 }
 
-void Camera::MoveForward(GLfloat deltaT) {
-    if (!isPaused) {
-        param.position += heading * mspeed * deltaT;
-        needUpdate = true;
-    }
+//
+//
+// FPCAMERA
+//
+//
+
+FPCamera::FPCamera() : Camera() {
+	mspeed = 10.0f;
+	rspeed = 0.001f;
+	phi = 2.0f * (float) M_PI / 2.0f;
+	theta = 2.0f * (float) M_PI / 4.0f;
+	moveVec = glm::vec3(0,0,0);
 }
 
-void Camera::MoveRight(GLfloat deltaT) {
-    if (!isPaused) {
-        param.position += side * mspeed * deltaT;
-        needUpdate = true;
-    }
+bool FPCamera::Init(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
+	startPos = startpos;
+	param.position = startPos;
+
+	return Camera::Init(screenWidth, screenHeight, farInit);
 }
 
-void Camera::MoveUp(GLfloat deltaT) {
-    if (!isPaused) {
-        param.position += up * mspeed * deltaT;
-        needUpdate = true;
-    }
+void FPCamera::UpdateParams(GLfloat deltaT) {
+	// Update directions
+	forward = glm::normalize(
+			glm::vec3(-sin(theta) * sin(phi), cos(theta), sin(theta) * cos(phi)));
+	right = glm::normalize(glm::cross(forward, yvec));
+	up = glm::normalize(glm::cross(right, forward));
+
+	// Update camera matrix
+	param.position += moveVec * deltaT;
+	lookp = param.position + forward;
+	param.WTVmatrix = lookAt(param.position, lookp, yvec);
 }
 
-void Camera::RotateCamera(GLint dx, GLint dy) {
-    if (!isPaused) {
-        float eps = 0.001f;
+void FPCamera::Reset() {
+	Camera::Reset();
 
-        phi += rspeed * dx;
-        theta += rspeed * dy;
+	phi = 7.0f * (float) M_PI / 4.0f;
+	theta = (float) M_PI / 2.0f;
+}
 
-        phi = (float)fmod(phi, 2.0f * (float)M_PI);
-        theta = theta < (float)M_PI - eps ? (theta > eps ? theta : eps) : (float)M_PI - eps;
-        needUpdate = true;
-    }
+void FPCamera::MoveForward() { Move(forward); }
+
+void FPCamera::MoveBackward() { Move(-forward); }
+
+void FPCamera::MoveRight() { Move(right); }
+
+void FPCamera::MoveLeft() { Move(-right); }
+
+void FPCamera::MoveUp() { Move(up); }
+
+void FPCamera::MoveDown() { Move(-up); }
+
+void FPCamera::Move(glm::vec3 vec) {
+	if (!isPaused) {
+		moveVec += vec * mspeed;
+		needUpdate = true;
+	}
+}
+
+void FPCamera::RotateCamera(GLint dx, GLint dy) {
+	RotateCamera((GLfloat)dx, (GLfloat)dy);
+}
+
+void FPCamera::RotateCamera(GLfloat dx, GLfloat dy) {
+	if (!isPaused) {
+		float eps = 0.001f;
+
+		phi += rspeed * dx;
+		theta += rspeed * dy;
+
+		phi = (float) fmod(phi, 2.0f * (float) M_PI);
+		theta = theta < (float) M_PI - eps ? (theta > eps ? theta : eps) :
+						(float) M_PI - eps;
+		needUpdate = true;
+	}
+}
+
+//
+//
+// ORBITCAMERA
+//
+//
+
+OrbitCamera::OrbitCamera() {
+	startTarget = glm::vec3(0,0,0);
+	target = startTarget;
+
+	distance = 1.0f;
+}
+
+void OrbitCamera::UpdateParams(GLfloat deltaT) {
+
+}
+
+bool OrbitCamera::Init(glm::vec3 initTarget, GLfloat initDistance, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
+	startTarget = initTarget;
+	target = startTarget;
+	distance = initDistance;
+
+	return Camera::Init(screenWidth, screenHeight, farInit);
+}
+
+void OrbitCamera::Reset() {
+	Camera::Reset();
+}
+
+void OrbitCamera::RotateCamera(GLfloat dx, GLfloat dy) {
+
+}
+
+void OrbitCamera::Zoom(GLfloat factor) {
+
 }
