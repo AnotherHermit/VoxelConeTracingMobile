@@ -20,7 +20,11 @@ Program::Program() {
 	time.startTimer();
 
 	// Set program parameters
-	cameraStartPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	//cameraStartPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	cameraStartDistance = 3.0f;
+	cameraStartAzimuth = (GLfloat) M_PI_2;
+	cameraStartPolar = (GLfloat) M_PI_2;
+	cameraStartTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 	cameraFrustumFar = 500.0f;
 
 	sceneSelect = 0;
@@ -50,7 +54,7 @@ void Program::Resize(int width, int height) {
 	winWidth = width;
 	winHeight = height;
 	glViewport(0, 0, width, height);
-	cam->SetFrustum();
+	cam->Resize();
 	GetCurrentScene()->SetupSceneTextures();
 //    GetCurrentScene()->Voxelize();
 }
@@ -65,7 +69,18 @@ void Program::timeUpdate() {
 */
 
 void Program::Pan(float dx, float dy) {
-	cam->RotateCamera(dx, dy);
+	cam->Rotate(dx, dy);
+}
+
+void Program::Zoom(float scale) {
+	cam->Zoom(scale);
+}
+
+void Program::ToggleProgram() {
+	GLuint current = GetCurrentScene()->GetSceneParam()->voxelDraw;
+	current++;
+	current %= 13;
+	GetCurrentScene()->GetSceneParam()->voxelDraw = current;
 }
 
 bool Program::Init() {
@@ -115,8 +130,9 @@ bool Program::Init() {
 	InitTimer();
 
 	// Set up the camera
-	cam = new Camera(cameraStartPos, &winWidth, &winHeight, cameraFrustumFar);
-	if (!cam->Init()) {
+	cam = new OrbitCamera();
+	if (!cam->Init(cameraStartTarget, cameraStartDistance, cameraStartPolar,
+								 cameraStartAzimuth, &winWidth, &winHeight, cameraFrustumFar)) {
 		LOGE("Camera not initialized!");
 		return false;
 	}
@@ -155,7 +171,7 @@ void Program::Update() {
 	UploadParams();
 
 	// Update the camera
-	cam->UpdateCamera();
+	cam->Update(param.deltaT);
 }
 
 void Program::Render() {

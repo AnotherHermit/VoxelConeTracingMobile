@@ -25,130 +25,132 @@
 
 // Values the should exist on the GPU
 struct SceneParam {
-    glm::mat4 MTOmatrix[3]; // Centers and scales scene to fit inside +-1 from three different rotations
-    glm::mat4 MTWmatrix; // Matrix for voxel data
-    glm::mat4 MTShadowMatrix; // Matrix that transforms scene to lightview
-    glm::vec3 lightDir;
-    GLuint voxelDraw; // Which texture to draw
-    GLuint view;
-    GLuint voxelRes;
-    GLuint voxelLayer;
-    GLuint numMipLevels;
-    GLuint mipLevel;
+	glm::mat4 MTOmatrix[3]; // Centers and scales scene to fit inside +-1 from three different rotations
+	glm::mat4 MTWmatrix; // Matrix for voxel data
+	glm::mat4 MTShadowMatrix; // Matrix that transforms scene to lightview
+	glm::vec3 lightDir;
+	GLuint voxelDraw; // Which texture to draw
+	GLuint view;
+	GLuint voxelRes;
+	GLuint voxelLayer;
+	GLuint numMipLevels;
+	GLuint mipLevel;
 };
 
 // Scene Options struct
 struct SceneOptions {
-    bool skipNoTexture;
-    bool drawVoxels;
-    bool drawModels;
-    bool drawTextures;
-    GLuint shadowRes;
+	bool skipNoTexture;
+	bool drawVoxels;
+	bool drawModels;
+	bool drawTextures;
+	GLuint shadowRes;
 };
 
 // The different view directions
 enum ViewDirection {
-    VIEW_X,
-    VIEW_Y,
-    VIEW_Z
+	VIEW_X,
+	VIEW_Y,
+	VIEW_Z
 };
 
 // Voxel Resolutions used
 enum VoxelResolutions {
-    RES16 = 16,
-    RES32 = 32,
-    RES64 = 64,
-    RES128 = 128,
-    RES256 = 256
+	RES16 = 16,
+	RES32 = 32,
+	RES64 = 64,
+	RES128 = 128,
+	RES256 = 256
 };
 
 // ===== ModelLoader class =====
 
 class Scene {
 private:
-    // All models contained in the scene
-    std::vector<Model *> *models;
-    Model *voxelModel;
+	// All models contained in the scene
+	std::vector<Model *> *models;
+	Model *voxelModel;
 
-    // Programs used to draw models
-    ShaderList *shaders;
+	// Programs used to draw models
+	ShaderList *shaders;
 
-    // Scene Options
-    SceneOptions options;
+	// Scene Options
+	SceneOptions options;
 
-    // Uniform buffer with scene settings
-    SceneParam param;
-    GLuint sceneBuffer;
+	// Uniform buffer with scene settings
+	SceneParam param;
+	GLuint sceneBuffer;
 
-    // Draw indirect buffer and struct
-    DrawElementsIndirectCommand drawIndCmd[10];
-    GLuint drawIndBuffer;
+	// Draw indirect buffer and struct
+	DrawElementsIndirectCommand drawIndCmd[10];
+	GLuint drawIndBuffer;
 
-    // Compute indirect buffer and struct
-    ComputeIndirectCommand compIndCmd[10];
-    GLuint compIndBuffer;
+	// Compute indirect buffer and struct
+	ComputeIndirectCommand compIndCmd[10];
+	GLuint compIndBuffer;
 
-    // Sparse List Buffer
-    GLuint sparseListBuffer;
+	// Sparse List Buffer
+	GLuint sparseListBuffer;
 
-    // FBOs
-    GLuint voxelFBO; //		Empty framebuffer for voxelization
-    GLuint shadowFBO; //	Framebuffer with depth texture for shadowmap
-    GLuint sceneFBO; //		Framebuffer for deferred rendering
+	// FBOs
+	GLuint voxelFBO; //		Empty framebuffer for voxelization
+	GLuint shadowFBO; //	Framebuffer with depth texture for shadowmap
+	GLuint sceneFBO; //		Framebuffer for deferred rendering
 
-    // Scene textures
-    GLuint voxel2DTex;
-    GLuint voxelTex;
-    GLuint shadowTex;
-    GLuint sceneTex[2]; // Color array and depth texture
+	// Scene textures
+	GLuint voxel2DTex;
+	GLuint voxelTex;
+	GLuint shadowTex;
+	GLuint sceneTex[2]; // Color array and depth texture
 
-    // Scene information
-    glm::vec3 *maxVertex, *minVertex, centerVertex;
-    GLfloat scale;
+	// Scene information
+	glm::vec3 *maxVertex, *minVertex, centerVertex;
+	GLfloat scale;
 
-    // Init functions
-    void InitBuffers();
+	// Init functions
+	void InitBuffers();
 
-    bool InitVoxel();
+	bool InitVoxel();
 
-    // Setup functions
-    void SetupDrawInd();
+	// Setup functions
+	void SetupDrawInd();
 
-    void SetupCompInd();
+	void SetupCompInd();
 
-    bool SetupScene(const char *path);
+	bool SetupScene(const char *path);
 
-    void SetupVoxelTextures();
+	void SetupVoxelTextures();
 
-    void SetupShadowTexture();
+	void SetupShadowTexture();
 
-    void SetupShadowMatrix();
+	void SetupShadowMatrix();
 
-    // Draw functions
-    void DrawTextures();
+	// Draw functions
+	void DrawTextures();
 
-    void DrawScene();
+	void DrawScene();
 
-    void DrawVoxels();
+	void DrawVoxels();
 
 public:
-    Scene();
+	Scene();
 
-    bool Init(const char *path, ShaderList *initShaders);
+	bool Init(const char *path, ShaderList *initShaders);
 
-    void CreateShadow();
+	void CreateShadow();
 
-    void RenderData();
+	void RenderData();
 
-    void Voxelize();
+	void Voxelize();
 
-    void MipMap();
+	void MipMap();
 
-    void Draw();
+	void Draw();
 
-    void UpdateBuffers();
+	void UpdateBuffers();
 
-    void SetupSceneTextures();
+	void SetupSceneTextures();
+
+	SceneParam* GetSceneParam() { return &param; }
 };
 
 #endif // SCENE_H

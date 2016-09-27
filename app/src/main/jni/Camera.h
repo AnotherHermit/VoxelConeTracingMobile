@@ -17,9 +17,9 @@
 
 // Uniform struct, needs to be arranged in multiples of 4 * 4 B for tight packing on GPU
 struct CameraParam {
-	glm::mat4 WTVmatrix;    // 16 * 4 B ->   0 -  15
-	glm::mat4 VTPmatrix;    // 16 * 4 B ->  16 -  31
-	glm::vec3 position;        //  3 * 4 B ->  32 -  34
+	glm::mat4 WTVmatrix;	// 16 * 4 B ->   0 -  15
+	glm::mat4 VTPmatrix;	// 16 * 4 B ->  16 -  31
+	glm::vec3 position;		//  3 * 4 B ->  32 -  34
 };
 
 class Camera {
@@ -56,7 +56,7 @@ public:
 
 	void TogglePause() { isPaused = !isPaused; }
 
-	CameraParam *GetCameraInfo() { return &param; }
+	CameraParam *GetInfo() { return &param; }
 };
 
 class FPCamera : public Camera {
@@ -83,9 +83,9 @@ public:
 	void MoveUp();
 	void MoveDown();
 
-	void RotateCamera(GLint dx, GLint dy);
+	void Rotate(GLint dx, GLint dy);
 
-	void RotateCamera(GLfloat dx, GLfloat dy);
+	void Rotate(GLfloat dx, GLfloat dy);
 
 	virtual void Reset();
 
@@ -97,21 +97,23 @@ public:
 class OrbitCamera : public Camera {
 private:
 	glm::vec3 target, startTarget;
-	GLfloat distance;
+	GLfloat distance, polar, azimuth;
+	GLfloat rspeed, mspeed;
 
 	virtual void UpdateParams(GLfloat deltaT = 1.0f);
 
 public:
 	OrbitCamera();
 
-	virtual bool Init(glm::vec3 initTarget, GLfloat initDistance, GLint
-	*screenWidth,
-										GLint *screenHeight,
-										GLfloat farInit);
+	virtual bool Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat
+	initPolar, GLfloat initAzimuth, GLint
+	*screenWidth, GLint *screenHeight, GLfloat farInit);
 
 	virtual void Reset();
 
-	void RotateCamera(GLfloat dx, GLfloat dy);
+	void Rotate(GLint dx, GLint dy);
+
+	void Rotate(GLfloat dx, GLfloat dy);
 
 	void Zoom(GLfloat factor);
 };

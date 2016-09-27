@@ -12,10 +12,19 @@ JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_init(JNIEnv *env, j
 JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_resize(JNIEnv *env, jobject obj,
                                                                     jint width, jint height);
 JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_step(JNIEnv *env, jobject obj);
-JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_touch(JNIEnv *env,
-                                                               jobject obj,
+JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_scroll(JNIEnv *env,
+                                                                    jobject obj,
 																																	 jfloat dx,
 																																	 jfloat dy);
+JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_scale(JNIEnv *env,
+                                                                   jobject obj,
+                                                                   jfloat scale);
+JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_doubleTap(JNIEnv
+																																		 *env,
+																																	 jobject obj);
+JNIEXPORT void JNICALL Java_se_anotherhermit_voxels_GLESView_longPress(JNIEnv
+																																			 *env,
+																																			 jobject obj);
 };
 
 JNIEXPORT void JNICALL
@@ -54,8 +63,23 @@ Java_se_anotherhermit_voxels_GLESView_step(JNIEnv *env, jobject obj) {
 }
 
 JNIEXPORT void JNICALL
-Java_se_anotherhermit_voxels_GLESView_touch(JNIEnv *env, jobject obj, jfloat
+Java_se_anotherhermit_voxels_GLESView_scroll(JNIEnv *env, jobject obj, jfloat
 dx, jfloat dy) {
-    LOGD("I'm touched, %f, %f!", dx, dy);
 	program->Pan(dx, dy);
+}
+
+JNIEXPORT void JNICALL
+Java_se_anotherhermit_voxels_GLESView_scale(JNIEnv *env, jobject obj, jfloat
+scale) {
+	program->Zoom(scale);
+}
+
+JNIEXPORT void JNICALL
+Java_se_anotherhermit_voxels_GLESView_doubleTap(JNIEnv *env, jobject obj) {
+	program->ToggleProgram();
+}
+
+JNIEXPORT void JNICALL
+Java_se_anotherhermit_voxels_GLESView_longPress(JNIEnv *env, jobject obj) {
+	program->ToggleProgram();
 }

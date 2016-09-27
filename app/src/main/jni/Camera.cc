@@ -135,11 +135,11 @@ void FPCamera::Move(glm::vec3 vec) {
 	}
 }
 
-void FPCamera::RotateCamera(GLint dx, GLint dy) {
-	RotateCamera((GLfloat)dx, (GLfloat)dy);
+void FPCamera::Rotate(GLint dx, GLint dy) {
+	Rotate((GLfloat)dx, (GLfloat)dy);
 }
 
-void FPCamera::RotateCamera(GLfloat dx, GLfloat dy) {
+void FPCamera::Rotate(GLfloat dx, GLfloat dy) {
 	if (!isPaused) {
 		float eps = 0.001f;
 
@@ -164,16 +164,30 @@ OrbitCamera::OrbitCamera() {
 	target = startTarget;
 
 	distance = 1.0f;
+
+	rspeed = 0.001f;
+	mspeed = 10.0f;
 }
 
 void OrbitCamera::UpdateParams(GLfloat deltaT) {
+	param.position = glm::vec3(sin(polar)*cos(azimuth),
+														 cos(polar),
+														 sin(polar)*sin(azimuth));
+	param.position *= distance;
 
+	lookp = target;
+
+	param.WTVmatrix = lookAt(param.position, lookp, yvec);
 }
 
-bool OrbitCamera::Init(glm::vec3 initTarget, GLfloat initDistance, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
+bool OrbitCamera::Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat
+initPolar, GLfloat initAzimuth, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
 	startTarget = initTarget;
 	target = startTarget;
 	distance = initDistance;
+
+	polar = initPolar;
+	azimuth = initAzimuth;
 
 	return Camera::Init(screenWidth, screenHeight, farInit);
 }
@@ -182,10 +196,29 @@ void OrbitCamera::Reset() {
 	Camera::Reset();
 }
 
-void OrbitCamera::RotateCamera(GLfloat dx, GLfloat dy) {
+void OrbitCamera::Rotate(GLint dx, GLint dy) {
+	Rotate((GLfloat)dx, (GLfloat)dy);
+}
 
+void OrbitCamera::Rotate(GLfloat dx, GLfloat dy) {
+	if (!isPaused) {
+		float eps = 0.001f;
+
+		azimuth -= rspeed * dx;
+		polar += rspeed * dy;
+
+		azimuth = (float) fmod(azimuth, 2.0f * (float) M_PI);
+		polar = polar < (float) M_PI - eps ? (polar > eps ? polar : eps) :
+						(float) M_PI - eps;
+
+		needUpdate = true;
+	}
 }
 
 void OrbitCamera::Zoom(GLfloat factor) {
+	if(!isPaused) {
+		distance /= factor;
 
+		needUpdate = true;
+	}
 }
