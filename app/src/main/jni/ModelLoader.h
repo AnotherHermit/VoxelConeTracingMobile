@@ -40,8 +40,7 @@ public:
 
     bool LoadScene(const char *path, std::vector<Model *> *outModels);
 
-    bool LoadScene(const char *path, std::vector<Model *> *outModels,
-                   glm::vec3 **outMaxVertex, glm::vec3 **outMinVertex);
+    bool LoadScene(const char *path, std::vector<Model *> *outModels, glm::vec3 **outMaxVertex, glm::vec3 **outMinVertex);
 
     bool LoadModel(const char *path, Model *outModel);
 

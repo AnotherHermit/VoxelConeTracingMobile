@@ -8,7 +8,6 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -17,9 +16,9 @@
 
 // Uniform struct, needs to be arranged in multiples of 4 * 4 B for tight packing on GPU
 struct CameraParam {
-	glm::mat4 WTVmatrix;	// 16 * 4 B ->   0 -  15
-	glm::mat4 VTPmatrix;	// 16 * 4 B ->  16 -  31
-	glm::vec3 position;		//  3 * 4 B ->  32 -  34
+	glm::mat4 WTVmatrix;  // 16 * 4 B ->   0 -  15
+	glm::mat4 VTPmatrix;  // 16 * 4 B ->  16 -  31
+	glm::vec3 position;    //  3 * 4 B ->  32 -  34
 };
 
 class Camera {
@@ -69,18 +68,20 @@ private:
 public:
 	FPCamera();
 
-	bool Init(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight,
-						GLfloat farInit);
+	bool Init(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight, GLfloat farInit);
 
 	void Move(glm::vec3 vec);
 
 	void MoveForward();
+
 	void MoveBackward();
 
 	void MoveRight();
+
 	void MoveLeft();
 
 	void MoveUp();
+
 	void MoveDown();
 
 	void Rotate(GLint dx, GLint dy);
@@ -98,16 +99,14 @@ class OrbitCamera : public Camera {
 private:
 	glm::vec3 target, startTarget;
 	GLfloat distance, polar, azimuth;
-	GLfloat rspeed, mspeed;
+	GLfloat rspeed;
 
 	virtual void UpdateParams(GLfloat deltaT = 1.0f);
 
 public:
 	OrbitCamera();
 
-	virtual bool Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat
-	initPolar, GLfloat initAzimuth, GLint
-	*screenWidth, GLint *screenHeight, GLfloat farInit);
+	virtual bool Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat initPolar, GLfloat initAzimuth, GLint *screenWidth, GLint *screenHeight, GLfloat farInit);
 
 	virtual void Reset();
 

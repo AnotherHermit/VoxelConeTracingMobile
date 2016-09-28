@@ -150,7 +150,7 @@ public:
 
 	void SetupSceneTextures();
 
-	SceneParam* GetSceneParam() { return &param; }
+	SceneParam *GetSceneParam() { return &param; }
 };
 
 #endif // SCENE_H

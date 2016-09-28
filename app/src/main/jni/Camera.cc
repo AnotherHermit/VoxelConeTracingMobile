@@ -35,8 +35,7 @@ bool Camera::Init(GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
 
 	GL_CHECK(glGenBuffers(1, &cameraBuffer));
 	GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA, cameraBuffer));
-	GL_CHECK(glBufferData(GL_UNIFORM_BUFFER, sizeof(CameraParam), NULL,
-												GL_STREAM_DRAW));
+	GL_CHECK(glBufferData(GL_UNIFORM_BUFFER, sizeof(CameraParam), NULL, GL_STREAM_DRAW));
 
 	// Set starting WTVmatrix
 	Update();
@@ -57,8 +56,7 @@ void Camera::Resize() {
 }
 
 void Camera::UpdateFrustum() {
-	param.VTPmatrix = glm::frustum(-ratioW, ratioW, -ratioH, ratioH, 1.0f,
-																 frustumFar);
+	param.VTPmatrix = glm::frustum(-ratioW, ratioW, -ratioH, ratioH, 1.0f, frustumFar);
 }
 
 void Camera::UploadParams() {
@@ -86,7 +84,7 @@ FPCamera::FPCamera() : Camera() {
 	rspeed = 0.001f;
 	phi = 2.0f * (float) M_PI / 2.0f;
 	theta = 2.0f * (float) M_PI / 4.0f;
-	moveVec = glm::vec3(0,0,0);
+	moveVec = glm::vec3(0, 0, 0);
 }
 
 bool FPCamera::Init(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
@@ -98,8 +96,7 @@ bool FPCamera::Init(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight,
 
 void FPCamera::UpdateParams(GLfloat deltaT) {
 	// Update directions
-	forward = glm::normalize(
-			glm::vec3(-sin(theta) * sin(phi), cos(theta), sin(theta) * cos(phi)));
+	forward = glm::normalize(glm::vec3(-sin(theta) * sin(phi), cos(theta), sin(theta) * cos(phi)));
 	right = glm::normalize(glm::cross(forward, yvec));
 	up = glm::normalize(glm::cross(right, forward));
 
@@ -136,7 +133,7 @@ void FPCamera::Move(glm::vec3 vec) {
 }
 
 void FPCamera::Rotate(GLint dx, GLint dy) {
-	Rotate((GLfloat)dx, (GLfloat)dy);
+	Rotate((GLfloat) dx, (GLfloat) dy);
 }
 
 void FPCamera::Rotate(GLfloat dx, GLfloat dy) {
@@ -160,19 +157,18 @@ void FPCamera::Rotate(GLfloat dx, GLfloat dy) {
 //
 
 OrbitCamera::OrbitCamera() {
-	startTarget = glm::vec3(0,0,0);
+	startTarget = glm::vec3(0, 0, 0);
 	target = startTarget;
 
 	distance = 1.0f;
 
 	rspeed = 0.001f;
-	mspeed = 10.0f;
 }
 
 void OrbitCamera::UpdateParams(GLfloat deltaT) {
-	param.position = glm::vec3(sin(polar)*cos(azimuth),
+	param.position = glm::vec3(sin(polar) * cos(azimuth),
 														 cos(polar),
-														 sin(polar)*sin(azimuth));
+														 sin(polar) * sin(azimuth));
 	param.position *= distance;
 
 	lookp = target;
@@ -180,8 +176,7 @@ void OrbitCamera::UpdateParams(GLfloat deltaT) {
 	param.WTVmatrix = lookAt(param.position, lookp, yvec);
 }
 
-bool OrbitCamera::Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat
-initPolar, GLfloat initAzimuth, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
+bool OrbitCamera::Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat initPolar, GLfloat initAzimuth, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
 	startTarget = initTarget;
 	target = startTarget;
 	distance = initDistance;
@@ -197,7 +192,7 @@ void OrbitCamera::Reset() {
 }
 
 void OrbitCamera::Rotate(GLint dx, GLint dy) {
-	Rotate((GLfloat)dx, (GLfloat)dy);
+	Rotate((GLfloat) dx, (GLfloat) dy);
 }
 
 void OrbitCamera::Rotate(GLfloat dx, GLfloat dy) {
@@ -208,15 +203,14 @@ void OrbitCamera::Rotate(GLfloat dx, GLfloat dy) {
 		polar += rspeed * dy;
 
 		azimuth = (float) fmod(azimuth, 2.0f * (float) M_PI);
-		polar = polar < (float) M_PI - eps ? (polar > eps ? polar : eps) :
-						(float) M_PI - eps;
+		polar = polar < (float) M_PI - eps ? (polar > eps ? polar : eps) : (float) M_PI - eps;
 
 		needUpdate = true;
 	}
 }
 
 void OrbitCamera::Zoom(GLfloat factor) {
-	if(!isPaused) {
+	if (!isPaused) {
 		distance /= factor;
 
 		needUpdate = true;

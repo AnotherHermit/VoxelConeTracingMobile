@@ -7,7 +7,6 @@
 
 #include "Program.h"
 
-
 Program::Program() {
 	// Set all pointers to null
 	cam = NULL;
@@ -98,8 +97,7 @@ bool Program::Init() {
 
 	GL_CHECK(glGenBuffers(1, &programBuffer));
 	GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, PROGRAM, programBuffer));
-	GL_CHECK(glBufferData(GL_UNIFORM_BUFFER, sizeof(ProgramStruct), &param,
-												GL_STREAM_DRAW));
+	GL_CHECK(glBufferData(GL_UNIFORM_BUFFER, sizeof(ProgramStruct), &param, GL_STREAM_DRAW));
 
 	// Load shaders for drawing
 	shaders.drawScene = loadShaders(SHADER_PATH("drawModel.vert"),
@@ -131,8 +129,7 @@ bool Program::Init() {
 
 	// Set up the camera
 	cam = new OrbitCamera();
-	if (!cam->Init(cameraStartTarget, cameraStartDistance, cameraStartPolar,
-								 cameraStartAzimuth, &winWidth, &winHeight, cameraFrustumFar)) {
+	if (!cam->Init(cameraStartTarget, cameraStartDistance, cameraStartPolar, cameraStartAzimuth, &winWidth, &winHeight, cameraFrustumFar)) {
 		LOGE("Camera not initialized!");
 		return false;
 	}
@@ -191,8 +188,7 @@ void Program::Clean() {
 void Program::UploadParams() {
 	// Update program parameters
 	GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, PROGRAM, programBuffer));
-	GL_CHECK(
-			glBufferSubData(GL_UNIFORM_BUFFER, NULL, sizeof(ProgramStruct), &param));
+	GL_CHECK(glBufferSubData(GL_UNIFORM_BUFFER, NULL, sizeof(ProgramStruct), &param));
 }
 
 void Program::SetAssetMgr(AAssetManager *mgr) {

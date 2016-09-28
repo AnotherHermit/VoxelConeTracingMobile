@@ -14,66 +14,65 @@
 // ===== Texture Struct =====
 
 struct TextureData {
-    GLuint subID;
-    GLuint diffuseID;
-    GLuint maskID;
-    glm::vec3 diffColor;
+	GLuint subID;
+	GLuint diffuseID;
+	GLuint maskID;
+	glm::vec3 diffColor;
 };
 
 // ===== Model Class =====
 
 class Model {
 public:
-    Model();
+	Model();
 
-    void SetStandardData(size_t numVertices, GLfloat *verticeData,
-                         size_t numNormals, GLfloat *normalData,
-                         size_t numIndices, GLuint *indexData,
-                         size_t numTangents, GLfloat *tangentData,
-                         size_t numBiTangents, GLfloat *biTangentData);
+	void SetStandardData(size_t numVertices, GLfloat *verticeData,
+											 size_t numNormals, GLfloat *normalData,
+											 size_t numIndices, GLuint *indexData,
+											 size_t numTangents, GLfloat *tangentData,
+											 size_t numBiTangents, GLfloat *biTangentData);
 
-    void SetMaterial(TextureData *textureData);
+	void SetMaterial(TextureData *textureData);
 
-    void SetTextureData(size_t numTexCoords, GLfloat *texCoordData);
+	void SetTextureData(size_t numTexCoords, GLfloat *texCoordData);
 
-    // Set position buffer data, only for voxel model
-    void SetPositionData(GLuint positionBufferID);
+	// Set position buffer data, only for voxel model
+	void SetPositionData(GLuint positionBufferID);
 
-    bool hasDiffuseTex();
+	bool hasDiffuseTex();
 
-    bool hasMaskTex();
+	bool hasMaskTex();
 
-    void Draw();
+	void Draw();
 
-    void Voxelize();
+	void Voxelize();
 
-    void ShadowMap();
+	void ShadowMap();
 
-    GLuint GetVAO() { return vao; }
+	GLuint GetVAO() { return vao; }
 
-    GLuint GetDiffuseID() { return diffuseID; }
+	GLuint GetDiffuseID() { return diffuseID; }
 
-    GLuint GetMaskID() { return maskID; }
+	GLuint GetMaskID() { return maskID; }
 
-    glm::vec3 GetDiffColor() { return diffColor; }
+	glm::vec3 GetDiffColor() { return diffColor; }
 
-    size_t GetNumIndices() { return nIndices; }
+	size_t GetNumIndices() { return nIndices; }
 
 private:
-    GLuint vao;
-    GLuint meshBuffers[5];
-    size_t nIndices;
+	GLuint vao;
+	GLuint meshBuffers[5];
+	size_t nIndices;
 
-    // Only used by textured models
-    GLuint diffuseID;
-    GLuint maskID;
-    GLuint texbufferID;
-    GLuint subDrawID;
-    GLuint subVoxelizeID;
+	// Only used by textured models
+	GLuint diffuseID;
+	GLuint maskID;
+	GLuint texbufferID;
+	GLuint subDrawID;
+	GLuint subVoxelizeID;
 
-    //
-    glm::vec3 diffColor;
+	//
+	glm::vec3 diffColor;
 };
-
 
 #endif // MODEL_H

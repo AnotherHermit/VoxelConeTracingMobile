@@ -57,16 +57,22 @@ private:
 
 public:
 	Program();
+
 	~Program();
 
 	void SetAssetMgr(AAssetManager *mgr);
+
 	bool Init();
+
 	void Resize(int width, int height);
+
 	void Step();
 
 	// Camera controlls
 	void Pan(float dx, float dy);
+
 	void Zoom(float scale);
+
 	void ToggleProgram();
 
 	//void timeUpdate();
@@ -76,10 +82,10 @@ public:
 	//void CheckKeyDowns();
 
 	void Update();
+
 	void Render();
 
 	void Clean();
-
 };
 
 #endif // PROGRAM_H
