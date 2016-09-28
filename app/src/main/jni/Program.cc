@@ -29,6 +29,7 @@ Program::Program() {
 	sceneSelect = 0;
 	useOrtho = false;
 	drawVoxelOverlay = false;
+	scrollLight = false;
 }
 
 Program::~Program() {
@@ -67,11 +68,12 @@ void Program::timeUpdate() {
 }
 */
 
-void Program::Pan(float dx, float dy) {
-	cam->Rotate(dx, dy);
+void Program::Scroll(float dx, float dy) {
+	if (scrollLight) GetCurrentScene()->PanLight(dx,dy);
+	else cam->Rotate(dx, dy);
 }
 
-void Program::Zoom(float scale) {
+void Program::Scale(float scale) {
 	cam->Zoom(scale);
 }
 
@@ -80,6 +82,10 @@ void Program::ToggleProgram() {
 	current++;
 	current %= 13;
 	GetCurrentScene()->GetSceneParam()->voxelDraw = current;
+}
+
+void Program::ToggleLightTouch() {
+	scrollLight = !scrollLight;
 }
 
 bool Program::Init() {
@@ -194,3 +200,6 @@ void Program::UploadParams() {
 void Program::SetAssetMgr(AAssetManager *mgr) {
 	SetAssetsManager(mgr);
 }
+
+
+

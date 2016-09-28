@@ -21,10 +21,10 @@ Scene::Scene() {
 	options.drawVoxels = true;
 	options.shadowRes = 512;
 
-	param.lightDir = glm::vec3(0.58f, 0.58f, 0.58f);
+	param.lightDir = glm::vec3(0.0f, 0.0f, 1.0f);
 	param.voxelRes = RES256;
 	param.voxelLayer = 0;
-	param.voxelDraw = 3;
+	param.voxelDraw = 0;
 	param.view = VIEW_X;
 	param.numMipLevels = (GLuint) log2(param.voxelRes);
 	param.mipLevel = 0;
@@ -256,6 +256,7 @@ void Scene::SetupShadowTexture() {
 
 void Scene::SetupShadowMatrix() {
 	param.lightDir = glm::normalize(param.lightDir);
+	/*
 	glm::vec3 z = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 l = param.lightDir;
 	glm::vec3 axis = glm::cross(l, z);
@@ -268,8 +269,8 @@ void Scene::SetupShadowMatrix() {
 		GLfloat angle = acos(glm::dot(z, l));
 
 		param.MTShadowMatrix = glm::rotate(angle, axis) * glm::scale(glm::vec3(1.0f / (float) sqrt(3.0f)));
-	}
-
+	}*/
+	param.MTShadowMatrix = glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), param.lightDir, glm::vec3(0.0f,1.0f,0.0f)) * glm::scale(glm::vec3(1.0f / sqrtf(3.0f)));
 	// TODO: Only update the buffer after light direction has actually changed
 	// Upload new params to GPU
 	GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, SCENE, sceneBuffer));
@@ -488,3 +489,25 @@ void Scene::DrawVoxels() {
 
 	GL_CHECK(glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void *) (sizeof(DrawElementsIndirectCommand) * param.mipLevel)));
 }
+
+void Scene::PanLight(GLfloat dx, GLfloat dy) {
+	GLfloat polar = acos(param.lightDir.y);
+	GLfloat azimuth = atan2f(param.lightDir.z, param.lightDir.x);
+
+	float eps = 0.001f;
+	float rspeed = 0.001f;
+
+	azimuth += rspeed * dx;
+	polar -= rspeed * dy;
+
+	azimuth = (float) fmod(azimuth, 2.0f * (float) M_PI);
+	polar = polar < (float) M_PI - eps ? (polar > eps ? polar : eps) : (float) M_PI - eps;
+
+	param.lightDir = glm::vec3(sin(polar) * cos(azimuth),
+														 cos(polar),
+														 sin(polar) * sin(azimuth));
+
+	UpdateBuffers();
+}
+
+

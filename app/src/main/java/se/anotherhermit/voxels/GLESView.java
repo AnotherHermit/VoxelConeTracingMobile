@@ -97,7 +97,7 @@ public class GLESView extends GLSurfaceView {
 		public void onLongPress(MotionEvent e) {
 			Log.d(DEBUG_TAG, "onLongPress");
 			longPress();
-			Toast.makeText(getContext(),"Toggled Light/Camera", Toast.LENGTH_SHORT)
+			Toast.makeText(getContext(), "Toggled Light/Camera", Toast.LENGTH_SHORT)
 					.show();
 			super.onLongPress(e);
 		}
@@ -106,7 +106,7 @@ public class GLESView extends GLSurfaceView {
 		public boolean onDoubleTap(MotionEvent e) {
 			Log.d(DEBUG_TAG, "onDoubleTap");
 			doubleTap();
-			Toast.makeText(getContext(),"Switched View", Toast.LENGTH_SHORT)
+			Toast.makeText(getContext(), "Switched View", Toast.LENGTH_SHORT)
 					.show();
 			return super.onDoubleTap(e);
 		}

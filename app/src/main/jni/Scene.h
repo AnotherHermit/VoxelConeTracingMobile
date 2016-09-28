@@ -150,6 +150,8 @@ public:
 
 	void SetupSceneTextures();
 
+	void PanLight(GLfloat dx, GLfloat dy);
+
 	SceneParam *GetSceneParam() { return &param; }
 };
 

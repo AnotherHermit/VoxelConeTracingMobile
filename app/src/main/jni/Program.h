@@ -14,7 +14,7 @@
 #include "Scene.h"
 
 #include "GL_utilities.h"
-#include "../../../../../../../../Android/android-sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include/android/asset_manager.h"
+//#include "../../../../../../../../Android/android-sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include/android/asset_manager.h"
 
 struct ProgramStruct {
 	GLfloat currentT;
@@ -33,6 +33,7 @@ private:
 
 	bool useOrtho;
 	bool drawVoxelOverlay;
+	bool scrollLight;
 	OrbitCamera *cam;
 
 	// Shaders
@@ -69,11 +70,13 @@ public:
 	void Step();
 
 	// Camera controlls
-	void Pan(float dx, float dy);
+	void Scroll(float dx, float dy);
 
-	void Zoom(float scale);
+	void Scale(float scale);
 
 	void ToggleProgram();
+
+	void ToggleLightTouch();
 
 	//void timeUpdate();
 	//void OnEvent(SDL_Event *Event);

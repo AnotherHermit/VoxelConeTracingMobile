@@ -54,12 +54,12 @@ Java_se_anotherhermit_voxels_GLESView_step(JNIEnv *env, jobject obj) {
 
 JNIEXPORT void JNICALL
 Java_se_anotherhermit_voxels_GLESView_scroll(JNIEnv *env, jobject obj, jfloat dx, jfloat dy) {
-	program->Pan(dx, dy);
+	program->Scroll(dx, dy);
 }
 
 JNIEXPORT void JNICALL
 Java_se_anotherhermit_voxels_GLESView_scale(JNIEnv *env, jobject obj, jfloat scale) {
-	program->Zoom(scale);
+	program->Scale(scale);
 }
 
 JNIEXPORT void JNICALL
@@ -69,5 +69,5 @@ Java_se_anotherhermit_voxels_GLESView_doubleTap(JNIEnv *env, jobject obj) {
 
 JNIEXPORT void JNICALL
 Java_se_anotherhermit_voxels_GLESView_longPress(JNIEnv *env, jobject obj) {
-	program->ToggleProgram();
+	program->ToggleLightTouch();
 }

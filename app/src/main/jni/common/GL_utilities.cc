@@ -39,7 +39,6 @@ void LoadAssetFolder(const char *folderName) {
 		length = (size_t) AAsset_getLength(asset);
 		buf = (char *) malloc(length);
 		AAsset_read(asset, buf, length);
-
 		snprintf(externalPath, sizeof(externalPath), MODEL_PATH("%s"), filename);
 		FILE *out = fopen(externalPath, "w");
 		fwrite(buf, length, 1, out);
