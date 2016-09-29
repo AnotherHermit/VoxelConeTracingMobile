@@ -1,29 +1,41 @@
 package se.anotherhermit.voxels;
 
-import android.os.Bundle;
 import android.app.Activity;
-import android.view.SurfaceHolder;
+import android.os.Bundle;
+import android.util.Log;
 
 public class MainActivity extends Activity {
 
-    GLESView mView;
+	GLESView mView;
 
-    @Override protected void onCreate(Bundle icicle) {
-        super.onCreate(icicle);
-        mView = new GLESView(getApplication());
+	@Override
+	protected void onCreate(Bundle icicle) {
+		super.onCreate(icicle);
+		mView = new GLESView(getApplication());
 
-        mView.getHolder().setFixedSize(450, 800);
+		mView.getHolder().setFixedSize(450, 800);
 
-        setContentView(mView);
-    }
+		setContentView(mView);
+	}
 
-    @Override protected void onPause() {
-        super.onPause();
-        mView.onPause();
-    }
+	static {
+		try {
+			System.loadLibrary("MGD");
+		} catch (UnsatisfiedLinkError e) {
+			// Feel free to remove this log message.
+			Log.i("[ MGD ]", "libMGD.so not loaded.");
+		}
+	}
 
-    @Override protected void onResume() {
-        super.onResume();
-        mView.onResume();
-    }
+	@Override
+	protected void onPause() {
+		super.onPause();
+		mView.onPause();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mView.onResume();
+	}
 }
