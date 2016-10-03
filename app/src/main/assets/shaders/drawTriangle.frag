@@ -389,9 +389,9 @@ vec4 GIAOSoftShadows() {
     vec4 s = scene.MTShadowMatrix * vec4(p, 1.0f);
     vec2 t = s.xy * 0.5f + vec2(0.5f, 0.5f);
     float d = s.z;
-    float l = SceneShadow(t).x;
+    vec4 l = SceneShadow(t);
 
-    return s;
+    return l;
 }
 
 vec4 DemoScene() {

@@ -255,22 +255,12 @@ void Scene::SetupShadowTexture() {
 }
 
 void Scene::SetupShadowMatrix() {
-	param.lightDir = glm::normalize(param.lightDir);
-	/*
-	glm::vec3 z = glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec3 l = param.lightDir;
-	glm::vec3 axis = glm::cross(l, z);
-	// TODO: Make sure this is correct
-	float isSame = (float) sqrt(axis.x * axis.x + axis.y * axis.y + axis.z * axis.z);
-	if (isSame < glm::epsilon<float>()) {
-		param.MTShadowMatrix = glm::scale(glm::vec3(1.0f / (float) sqrt(3.0f))) * param.MTOmatrix[2];
-	} else {
-		axis = normalize(axis);
-		GLfloat angle = acos(glm::dot(z, l));
+	glm::vec3 o = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 y = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 l = glm::normalize(param.lightDir);
 
-		param.MTShadowMatrix = glm::rotate(angle, axis) * glm::scale(glm::vec3(1.0f / (float) sqrt(3.0f)));
-	}*/
-	param.MTShadowMatrix = glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), param.lightDir, glm::vec3(0.0f,1.0f,0.0f)) * glm::scale(glm::vec3(1.0f / sqrtf(3.0f)));
+	param.MTShadowMatrix = glm::lookAt(o, l, y) * glm::scale(glm::vec3(1.0f / sqrtf(3.0f)));
+
 	// TODO: Only update the buffer after light direction has actually changed
 	// Upload new params to GPU
 	GL_CHECK(glBindBufferBase(GL_UNIFORM_BUFFER, SCENE, sceneBuffer));
