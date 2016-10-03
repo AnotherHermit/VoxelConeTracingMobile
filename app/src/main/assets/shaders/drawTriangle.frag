@@ -14,6 +14,16 @@ layout(binding = 6) uniform highp sampler2DArray sceneTex;
 layout(binding = 7) uniform highp sampler2D sceneDepth;
 layout(location = 10) uniform int texNumber;
 
+struct Camera {
+	mat4 WTVmatrix;
+	mat4 VTPmatrix;
+	vec3 position;
+};
+
+layout (std140, binding = 0) uniform CameraBuffer {
+	Camera cam;
+};
+
 struct SceneParams {
 	mat4 MTOmatrix[3];
 	mat4 MTWmatrix;
@@ -79,6 +89,10 @@ vec4 ShadowTexture() {
 	return texture(shadowMap, exTexCoords);
 }
 
+vec4 SceneShadow(vec2 texCoords) {
+    return texture(shadowMap, texCoords);
+}
+
 //layout(index = 3) subroutine(DrawTexture)
 vec4 SceneColor() {
 	return texture(sceneTex, vec3(exTexCoords, 0.0f));
@@ -124,8 +138,6 @@ vec4 SceneBiTangent() {
 vec4 SceneDepth() {
 	return texture(sceneDepth, exTexCoords);
 }
-
-
 
 vec4 voxelSampleLevel(vec3 position, float level) {
 	float mip = round(level);
@@ -322,12 +334,80 @@ vec4 SampleTexture() {
         case 10: return DiffuseBounce();
         case 11: return SoftShadows();
         case 12: return Combination();
-        default: return vec4(1.0f, 0.0f,0.0f,1.0f);
+        default: break;
+    }
+    return vec4(1.0f, 0.0f,0.0f,1.0f);
+}
+
+vec4 Basic() {
+    vec3 n = SceneNormal().xyz;
+    vec3 s = scene.lightDir;
+    vec3 r = 2.0f * n * dot(s, n) - s;
+    vec3 p = ScenePosition().xyz * 2.0f + vec3(-1.0f,-1.0f,-1.0f);
+    vec3 c = cam.position;
+    vec3 v = normalize(c - p);
+    float l = 0.3f + 0.5f * max(dot(s,n), 0.0f) + 0.2f * pow(max(dot(r,v), 0.0f), 5.0f);
+
+    vec4 t = SceneColor();
+
+    return vec4(t.xyz * l, t.w);
+}
+
+vec4 BasicShadows() {
+    vec4 c = Basic();
+    vec3 p = ScenePosition().xyz * 2.0f + vec3(-1.0f, -1.0f, -1.0f);
+    vec4 s = scene.MTShadowMatrix * vec4(p, 1.0f);
+    vec2 t = s.xy * 0.5f + vec2(0.5f, 0.5f);
+    float d = s.z;
+    float l = SceneShadow(t).x;
+
+    return vec4(c.xyz * float(d < l), c.w);
+}
+
+vec4 BasicAO() {
+    return SceneDepth();
+}
+
+vec4 BasicAOShadows() {
+    return ShadowTexture();
+}
+
+vec4 GIAOShadows() {
+    vec4 c = Basic();
+    vec3 p = ScenePosition().xyz * 2.0f + vec3(-1.0f, -1.0f, -1.0f);
+    vec4 s = scene.MTShadowMatrix * vec4(p, 1.0f);
+    vec2 t = s.xy * 0.5f + vec2(0.5f, 0.5f);
+    float d = s.z;
+    float l = SceneShadow(t).x;
+
+    return vec4(vec3(d, 0.0f, 0.0f), 1.0f);
+}
+
+vec4 GIAOSoftShadows() {
+    vec4 c = Basic();
+    vec3 p = ScenePosition().xyz * 2.0f + vec3(-1.0f, -1.0f, -1.0f);
+    vec4 s = scene.MTShadowMatrix * vec4(p, 1.0f);
+    vec2 t = s.xy * 0.5f + vec2(0.5f, 0.5f);
+    float d = s.z;
+    float l = SceneShadow(t).x;
+
+    return s;
+}
+
+vec4 DemoScene() {
+    switch(texNumber) {
+        case 0: return Basic();
+        case 1: return BasicShadows();
+        case 2: return BasicAO();
+        case 3: return BasicAOShadows();
+        case 4: return GIAOShadows();
+        case 5: return GIAOSoftShadows();
+        default: break;
     }
     return vec4(1.0f, 0.0f,0.0f,1.0f);
 }
 
 void main()
 {	
-	outColor = SampleTexture();
+	outColor = DemoScene();
 }

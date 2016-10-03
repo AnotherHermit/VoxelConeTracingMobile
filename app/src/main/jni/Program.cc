@@ -80,7 +80,7 @@ void Program::Scale(float scale) {
 void Program::ToggleProgram() {
 	GLuint current = GetCurrentScene()->GetSceneParam()->voxelDraw;
 	current++;
-	current %= 13;
+	current %= 6;
 	GetCurrentScene()->GetSceneParam()->voxelDraw = current;
 }
 
@@ -97,7 +97,7 @@ bool Program::Init() {
 	//glEnable(GL_TEXTURE_3D);
 	GL_CHECK(glEnable(GL_BLEND));
 	GL_CHECK(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-	GL_CHECK(glClearColor(0.3f, 0.0f, 0.3f, 1.0f));
+	GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 
 	dumpInfo();
 
