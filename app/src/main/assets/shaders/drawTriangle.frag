@@ -9,7 +9,7 @@ out vec4 outColor;
 
 layout(binding = 2) uniform highp usampler2DArray voxelTextures;
 layout(binding = 3) uniform highp usampler3D voxelData;
-layout(binding = 5) uniform highp sampler2D shadowMap;
+layout(binding = 5) uniform highp sampler2DShadow shadowMap;
 layout(binding = 6) uniform highp sampler2DArray sceneTex;
 layout(binding = 7) uniform highp sampler2D sceneDepth;
 layout(location = 10) uniform int texNumber;
@@ -85,11 +85,11 @@ vec4 VoxelTexure() {
 }
 
 //layout(index = 2) subroutine(DrawTexture)
-vec4 ShadowTexture() {
-	return texture(shadowMap, exTexCoords);
-}
+//vec4 ShadowTexture() {
+//	return texture(shadowMap, exTexCoords);
+//}
 
-vec4 SceneShadow(vec2 texCoords) {
+float SceneShadow(vec3 texCoords) {
     return texture(shadowMap, texCoords);
 }
 
@@ -229,7 +229,7 @@ vec4 ConeTrace60(vec3 startPos, vec3 dir, float aoDist, float maxDist, float vox
 	float sampleWeight;
 	float sampleLOD = 0.0f;
 	
-	for(float dist = voxelSize; dist < maxDist && accum.a < 1.0f;) {
+	for(float dist = voxelSize; dist < aoDist && accum.a < 1.0f;) {
 		samplePos = startPos + dir * dist;
         sampleValue = voxelSampleLevel(samplePos, sampleLOD);
 		sampleWeight = 1.0f - accum.a;
@@ -251,20 +251,19 @@ vec4 DiffuseTrace () {
 	dir[4] = vec3(-0.509037f, 0.500000f, -0.700629f);
 	dir[5] = vec3(-0.823639f, 0.500000f,  0.267617f);
 
-	float sideWeight = 3.0f / 20.0f;
 	float weight[2];
-	weight[0] = 5.0f / 20.0f;
-	weight[1] = sideWeight;
-	
-	float voxelSize = 2.5f / float(scene.voxelRes);
+	weight[0] = 0.25f;
+	weight[1] = (1.0f - weight[0]) / 5.0f;
+
+	float voxelSize = 2.0f / float(scene.voxelRes);
 	float maxDistance = 1.00f;
-	float aoDistance = 0.045f;
+	float aoDistance = 0.030f;
 	vec3 pos = ScenePosition().xyz;
 	vec3 norm = SceneNormal().xyz;
 	vec3 tang = SceneTangent().xyz;
 	vec3 bitang = SceneBiTangent(norm, tang).xyz;
 
-	pos += norm * voxelSize * 2.0f;
+	pos += norm * voxelSize;
 
 	vec4 total = vec4(0.0f);
 	for(int i = 0; i < 6; i++) {
@@ -323,7 +322,7 @@ vec4 SampleTexture() {
     switch(texNumber) {
         case 0: return ProjectionTexture();
         case 1: return VoxelTexure();
-        case 2: return ShadowTexture();
+        //case 2: return ShadowTexture();
         case 3: return SceneColor();
         case 4: return ScenePosition();
         case 5: return SceneNormal();
@@ -339,59 +338,95 @@ vec4 SampleTexture() {
     return vec4(1.0f, 0.0f,0.0f,1.0f);
 }
 
-vec4 Basic() {
-    vec3 n = SceneNormal().xyz;
-    vec3 s = scene.lightDir;
-    vec3 r = 2.0f * n * dot(s, n) - s;
-    vec3 p = ScenePosition().xyz * 2.0f + vec3(-1.0f,-1.0f,-1.0f);
+float ShadowMapping(vec3 p, vec3 n) {
+    p = p * 2.0f + vec3(-1.0f, -1.0f, -1.0f);
+    vec4 s = scene.MTShadowMatrix * vec4(p, 1.0f);
+    s = s * 0.5f + 0.5f;
+
+    vec3 l = scene.lightDir;
+    float cosTheta = max(dot(l,n), 0.0f);
+    float b = 0.005f*tan(acos(cosTheta));
+    b = clamp(b, 0.0f,0.02f);
+    s.z = s.z - b;
+
+    return SceneShadow(s.xyz);
+}
+
+vec3 BasicLight(vec3 p, vec3 n){
+    vec3 retLight;
+    vec3 l = scene.lightDir;
+    vec3 r = 2.0f * n * dot(l, n) - l;
+    p = p * 2.0f + vec3(-1.0f,-1.0f,-1.0f);
     vec3 c = cam.position;
     vec3 v = normalize(c - p);
-    float l = 0.3f + 0.5f * max(dot(s,n), 0.0f) + 0.2f * pow(max(dot(r,v), 0.0f), 5.0f);
+    retLight.x = 1.0f;
+    retLight.y = max(dot(l,n), 0.0f);
+    retLight.z = pow(max(dot(r,v), 0.0f), 5.0f);
+    return retLight;
+}
 
-    vec4 t = SceneColor();
+vec4 Basic() {
+    vec3 p = ScenePosition().xyz;
+    vec3 n = SceneNormal().xyz;
+    vec4 c = SceneColor();
+    vec3 l = BasicLight(p, n);
 
-    return vec4(t.xyz * l, t.w);
+    c.xyz *= 0.8f * l.x; // Ambient
+    c.xyz += 0.5f * l.y; // Diffuse
+    c.xyz += 0.2f * l.z; // Speclar
+
+    return c;
 }
 
 vec4 BasicShadows() {
-    vec4 c = Basic();
-    vec3 p = ScenePosition().xyz * 2.0f + vec3(-1.0f, -1.0f, -1.0f);
-    vec4 s = scene.MTShadowMatrix * vec4(p, 1.0f);
-    vec2 t = s.xy * 0.5f + vec2(0.5f, 0.5f);
-    float d = s.z;
-    float l = SceneShadow(t).x;
+    vec3 p = ScenePosition().xyz;
+    vec3 n = SceneNormal().xyz;
+    vec4 c = SceneColor();
+    vec3 l = BasicLight(p, n);
+    float s = 1.0f - 0.5f * ShadowMapping(p, n);
 
-    return vec4(c.xyz * float(d < l), c.w);
+    c.xyz *= 0.8f * l.x; // Ambient
+    c.xyz += 0.5f * l.y * s; // Diffuse
+    c.xyz += 0.2f * l.z * s; // Speclar
+
+    return c;
 }
 
 vec4 BasicAO() {
-    return SceneDepth();
+    vec3 p = ScenePosition().xyz;
+    vec3 n = SceneNormal().xyz;
+    vec4 c = SceneColor();
+    vec3 l = BasicLight(p, n);
+    vec4 a = AmbientOcclusion();
+
+    c.xyz *= (0.4f * l.x + 0.4f * a.x); // Ambient
+    c.xyz += 0.5f * l.y; // Diffuse
+    c.xyz += 0.2f * l.z; // Speclar
+
+    return c;
 }
 
 vec4 BasicAOShadows() {
-    return ShadowTexture();
+    vec3 p = ScenePosition().xyz;
+    vec3 n = SceneNormal().xyz;
+    vec4 c = SceneColor();
+    vec3 l = BasicLight(p, n);
+    float s = 1.0f - 0.5f * ShadowMapping(p, n);
+    vec4 a = AmbientOcclusion();
+
+    c.xyz *= (0.4f * l.x + 0.4f * a.x); // Ambient
+    c.xyz += 0.5f * l.y * s; // Diffuse
+    c.xyz += 0.2f * l.z * s; // Speclar
+
+    return c;
 }
 
 vec4 GIAOShadows() {
-    vec4 c = Basic();
-    vec3 p = ScenePosition().xyz * 2.0f + vec3(-1.0f, -1.0f, -1.0f);
-    vec4 s = scene.MTShadowMatrix * vec4(p, 1.0f);
-    vec2 t = s.xy * 0.5f + vec2(0.5f, 0.5f);
-    float d = s.z;
-    float l = SceneShadow(t).x;
-
-    return vec4(vec3(d, 0.0f, 0.0f), 1.0f);
+    return vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
 vec4 GIAOSoftShadows() {
-    vec4 c = Basic();
-    vec3 p = ScenePosition().xyz * 2.0f + vec3(-1.0f, -1.0f, -1.0f);
-    vec4 s = scene.MTShadowMatrix * vec4(p, 1.0f);
-    vec2 t = s.xy * 0.5f + vec2(0.5f, 0.5f);
-    float d = s.z;
-    vec4 l = SceneShadow(t);
-
-    return l;
+    return vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
 vec4 DemoScene() {
@@ -404,7 +439,7 @@ vec4 DemoScene() {
         case 5: return GIAOSoftShadows();
         default: break;
     }
-    return vec4(1.0f, 0.0f,0.0f,1.0f);
+    return vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void main()
