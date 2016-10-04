@@ -21,7 +21,7 @@ Scene::Scene() {
 	options.drawVoxels = true;
 	options.shadowRes = 512;
 
-	param.lightDir = glm::vec3(0.0f, 0.0f, 1.0f);
+	param.lightDir = glm::vec3(0.577f, 0.577f, 0.577f);
 	param.voxelRes = RES256;
 	param.voxelLayer = 0;
 	param.voxelDraw = 0;

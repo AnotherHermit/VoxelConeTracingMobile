@@ -22,9 +22,9 @@ Program::Program() {
 	//cameraStartPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	cameraStartDistance = 3.0f;
 	cameraStartAzimuth = (GLfloat) M_PI_2;
-	cameraStartPolar = (GLfloat) M_PI_2;
+	cameraStartPolar = (GLfloat) M_PI / 2.3f;
 	cameraStartTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-	cameraFrustumFar = 500.0f;
+	cameraFrustumFar = 50.0f;
 
 	sceneSelect = 0;
 	useOrtho = false;
