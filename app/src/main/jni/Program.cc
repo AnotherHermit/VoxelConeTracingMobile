@@ -24,7 +24,7 @@ Program::Program() {
 	cameraStartAzimuth = (GLfloat) M_PI_2;
 	cameraStartPolar = (GLfloat) M_PI / 2.3f;
 	cameraStartTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-	cameraFrustumFar = 50.0f;
+	cameraFrustumFar = 10.0f;
 
 	sceneSelect = 0;
 	useOrtho = false;
@@ -80,7 +80,7 @@ void Program::Scale(float scale) {
 void Program::ToggleProgram() {
 	GLuint current = GetCurrentScene()->GetSceneParam()->voxelDraw;
 	current++;
-	current %= 4;
+	current %= 6;
 	GetCurrentScene()->GetSceneParam()->voxelDraw = current;
 }
 
@@ -183,8 +183,8 @@ void Program::Render() {
 
 	GetCurrentScene()->CreateShadow();
 	GetCurrentScene()->RenderData();
-//    GetCurrentScene()->Voxelize();
-//    GetCurrentScene()->MipMap();
+//	GetCurrentScene()->Voxelize();
+//	GetCurrentScene()->MipMap();
 	GetCurrentScene()->Draw();
 }
 

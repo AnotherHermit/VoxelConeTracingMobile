@@ -229,7 +229,7 @@ vec4 ConeTrace60(vec3 startPos, vec3 dir, float aoDist, float maxDist, float vox
 	float sampleWeight;
 	float sampleLOD = 0.0f;
 	
-	for(float dist = voxelSize; dist < aoDist && accum.a < 1.0f;) {
+	for(float dist = voxelSize; dist < maxDist && accum.a < 1.0f;) {
 		samplePos = startPos + dir * dist;
         sampleValue = voxelSampleLevel(samplePos, sampleLOD);
 		sampleWeight = 1.0f - accum.a;
@@ -242,7 +242,7 @@ vec4 ConeTrace60(vec3 startPos, vec3 dir, float aoDist, float maxDist, float vox
 	return vec4(accum.rgb, 1.0f - opacity);
 }
 
-vec4 DiffuseTrace () {
+vec4 DiffuseTrace (vec3 p, vec3 n, vec3 t, float d) {
 	vec3 dir[6];
 	dir[0] = vec3( 0.000000f, 1.000000f,  0.000000f);
 	dir[1] = vec3( 0.000000f, 0.500000f,  0.866025f);
@@ -256,8 +256,8 @@ vec4 DiffuseTrace () {
 	weight[1] = (1.0f - weight[0]) / 5.0f;
 
 	float voxelSize = 2.0f / float(scene.voxelRes);
-	float maxDistance = 1.00f;
-	float aoDistance = 0.030f;
+	float maxDistance = d;
+	float aoDistance = min(0.03f, maxDistance);
 	vec3 pos = ScenePosition().xyz;
 	vec3 norm = SceneNormal().xyz;
 	vec3 tang = SceneTangent().xyz;
@@ -292,14 +292,14 @@ vec4 AngleTrace(vec3 dir, float theta) {
 }
 
 //layout(index = 9) subroutine(DrawTexture)
-vec4 AmbientOcclusion() {
-	return vec4(vec3(DiffuseTrace().w), 1.0f);
-}
+//vec4 AmbientOcclusion() {
+	//return vec4(vec3(DiffuseTrace().w), 1.0f);
+//}
 
 //layout(index = 10) subroutine(DrawTexture)
-vec4 DiffuseBounce() {
-	return vec4(DiffuseTrace().rgb, 1.0f);
-}
+//vec4 DiffuseBounce() {
+	//return vec4(DiffuseTrace().rgb, 1.0f);
+//}
 
 //layout(index = 11) subroutine(DrawTexture)
 vec4 SoftShadows() {
@@ -309,12 +309,12 @@ vec4 SoftShadows() {
 }
 
 //layout(index = 12) subroutine(DrawTexture)
-vec4 Combination() {
-	vec4 diffuse = DiffuseTrace();
-	vec4 shadows = AngleTrace(scene.lightDir, 5.0f);
-	vec4 color = SceneColor();
-	return vec4((color.rgb  * (1.0f - shadows.a) + diffuse.rgb * color.rgb * shadows.a), 1.0f);
-}
+//vec4 Combination() {
+	//vec4 diffuse = DiffuseTrace();
+	//vec4 shadows = AngleTrace(scene.lightDir, 5.0f);
+	//vec4 color = SceneColor();
+	//return vec4((color.rgb  * (1.0f - shadows.a) + diffuse.rgb * color.rgb * shadows.a), 1.0f);
+//}
 
 //layout(location = 0) subroutine uniform DrawTexture SampleTexture;
 
@@ -329,10 +329,10 @@ vec4 SampleTexture() {
         case 6: return SceneTangent();
         case 7: return SceneBiTangent();
         case 8: return SceneDepth();
-        case 9: return AmbientOcclusion();
-        case 10: return DiffuseBounce();
+        //case 9: return AmbientOcclusion();
+        //case 10: return DiffuseBounce();
         case 11: return SoftShadows();
-        case 12: return Combination();
+        //case 12: return Combination();
         default: break;
     }
     return vec4(1.0f, 0.0f,0.0f,1.0f);
@@ -395,11 +395,13 @@ vec4 BasicShadows() {
 vec4 BasicAO() {
     vec3 p = ScenePosition().xyz;
     vec3 n = SceneNormal().xyz;
+    vec3 t = SceneTangent().xyz;
+    float m = 0.03f;
     vec4 c = SceneColor();
     vec3 l = BasicLight(p, n);
-    vec4 a = AmbientOcclusion();
+    vec4 d = DiffuseTrace(p, n, t, m);
 
-    c.xyz *= (0.4f * l.x + 0.4f * a.x); // Ambient
+    c.xyz *= (0.4f * l.x + 0.4f * d.w); // Ambient
     c.xyz += 0.5f * l.y; // Diffuse
     c.xyz += 0.2f * l.z; // Speclar
 
@@ -409,12 +411,14 @@ vec4 BasicAO() {
 vec4 BasicAOShadows() {
     vec3 p = ScenePosition().xyz;
     vec3 n = SceneNormal().xyz;
+    vec3 t = SceneTangent().xyz;
+    float m = 0.03f;
     vec4 c = SceneColor();
     vec3 l = BasicLight(p, n);
     float s = 1.0f - 0.5f * ShadowMapping(p, n);
-    vec4 a = AmbientOcclusion();
+    vec4 d = DiffuseTrace(p, n, t, m);
 
-    c.xyz *= (0.4f * l.x + 0.4f * a.x); // Ambient
+    c.xyz *= (0.4f * l.x + 0.4f * d.w); // Ambient
     c.xyz += 0.5f * l.y * s; // Diffuse
     c.xyz += 0.2f * l.z * s; // Speclar
 
@@ -422,11 +426,31 @@ vec4 BasicAOShadows() {
 }
 
 vec4 GIAOShadows() {
-    return vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    vec3 p = ScenePosition().xyz;
+    vec3 n = SceneNormal().xyz;
+    vec3 t = SceneTangent().xyz;
+    float m = 1.0f;
+    vec4 c = SceneColor();
+    vec3 l = BasicLight(p, n);
+    float s = 1.0f - 0.5f * ShadowMapping(p, n);
+    vec4 d = DiffuseTrace(p, n, t, m);
+
+    c.xyz += 0.5f * d.xyz;
+    c.xyz *= (0.4f * l.x + 0.4f * d.w); // Ambient
+    c.xyz += 0.5f * l.y * s; // Diffuse
+    c.xyz += 0.2f * l.z * s; // Speclar
+
+    return c;
 }
 
 vec4 GIAOSoftShadows() {
-    return vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    vec3 p = ScenePosition().xyz;
+    vec3 n = SceneNormal().xyz;
+    vec3 t = SceneTangent().xyz;
+    float m = 1.0f;
+    vec4 d = DiffuseTrace(p, n, t, m);
+
+    return vec4(d.xyz, 1.0f);
 }
 
 vec4 DemoScene() {

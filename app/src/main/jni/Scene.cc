@@ -18,7 +18,7 @@ Scene::Scene() {
 	options.skipNoTexture = false;
 	options.drawTextures = true;
 	options.drawModels = false;
-	options.drawVoxels = true;
+	options.drawVoxels = false;
 	options.shadowRes = 512;
 
 	param.lightDir = glm::vec3(0.577f, 0.577f, 0.577f);
