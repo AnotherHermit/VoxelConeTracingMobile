@@ -392,22 +392,6 @@ vec4 BasicShadows() {
     return c;
 }
 
-vec4 BasicAO() {
-    vec3 p = ScenePosition().xyz;
-    vec3 n = SceneNormal().xyz;
-    vec3 t = SceneTangent().xyz;
-    float m = 0.03f;
-    vec4 c = SceneColor();
-    vec3 l = BasicLight(p, n);
-    vec4 d = DiffuseTrace(p, n, t, m);
-
-    c.xyz *= (0.4f * l.x + 0.4f * d.w); // Ambient
-    c.xyz += 0.5f * l.y; // Diffuse
-    c.xyz += 0.2f * l.z; // Speclar
-
-    return c;
-}
-
 vec4 BasicAOShadows() {
     vec3 p = ScenePosition().xyz;
     vec3 n = SceneNormal().xyz;
@@ -448,19 +432,26 @@ vec4 GIAOSoftShadows() {
     vec3 n = SceneNormal().xyz;
     vec3 t = SceneTangent().xyz;
     float m = 1.0f;
+    vec4 c = SceneColor();
+    vec3 l = BasicLight(p, n);
+    float s = 1.0f - AngleTrace(scene.lightDir, 5.0f).a;
     vec4 d = DiffuseTrace(p, n, t, m);
 
-    return vec4(d.xyz, 1.0f);
+    c.xyz += 0.5f * d.xyz;
+    c.xyz *= (0.4f * l.x + 0.4f * d.w); // Ambient
+    c.xyz += 0.5f * l.y * s; // Diffuse
+    c.xyz += 0.2f * l.z * s; // Speclar
+
+    return c;
 }
 
 vec4 DemoScene() {
     switch(texNumber) {
         case 0: return Basic();
         case 1: return BasicShadows();
-        case 2: return BasicAO();
-        case 3: return BasicAOShadows();
-        case 4: return GIAOShadows();
-        case 5: return GIAOSoftShadows();
+        case 2: return BasicAOShadows();
+        case 3: return GIAOShadows();
+        case 4: return GIAOSoftShadows();
         default: break;
     }
     return vec4(1.0f, 0.0f, 0.0f, 1.0f);

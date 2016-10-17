@@ -80,7 +80,7 @@ void Program::Scale(float scale) {
 void Program::ToggleProgram() {
 	GLuint current = GetCurrentScene()->GetSceneParam()->voxelDraw;
 	current++;
-	current %= 6;
+	current %= 5;
 	GetCurrentScene()->GetSceneParam()->voxelDraw = current;
 }
 
