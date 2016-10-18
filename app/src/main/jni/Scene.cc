@@ -16,13 +16,13 @@
 
 Scene::Scene() {
 	options.skipNoTexture = false;
-	options.drawTextures = true;
+	options.drawTextures = false;
 	options.drawModels = false;
-	options.drawVoxels = false;
+	options.drawVoxels = true;
 	options.shadowRes = 512;
 
 	param.lightDir = glm::vec3(0.577f, 0.577f, 0.577f);
-	param.voxelRes = RES256;
+	param.voxelRes = RES128;
 	param.voxelLayer = 0;
 	param.voxelDraw = 0;
 	param.view = VIEW_X;
@@ -172,6 +172,8 @@ void Scene::SetupVoxelTextures() {
 	// Create the 3D texture that contains the voxel data
 	if (voxelTex != 0) {
 		GL_CHECK(glDeleteTextures(1, &voxelTex));
+		GL_CHECK(glFinish());
+		LOGD("Texture ID: %d", voxelTex);
 	}
 	GL_CHECK(glGenTextures(1, &voxelTex));
 	GL_CHECK(glBindTexture(GL_TEXTURE_3D, voxelTex));
@@ -400,9 +402,9 @@ void Scene::Voxelize() {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	GL_CHECK(glViewport(origViewportSize[0], origViewportSize[1], origViewportSize[2], origViewportSize[3]));
 
-	GLint *temp = (GLint *) GL_CHECK(glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, sizeof(GLint) * 5, GL_MAP_READ_BIT));
-	LOGD("Draw Indirect Buffer: %i, %i, %i, %i, %i", temp[0], temp[1], temp[2], temp[3], temp[4]);
-	GL_CHECK(glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER));
+	//GLint *temp = (GLint *) GL_CHECK(glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, sizeof(GLint) * 5, GL_MAP_READ_BIT));
+	//LOGD("Draw Indirect Buffer: %i, %i, %i, %i, %i", temp[0], temp[1], temp[2], temp[3], temp[4]);
+	//GL_CHECK(glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER));
 
 }
 
@@ -419,9 +421,9 @@ void Scene::MipMap() {
 
 		GL_CHECK(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT));
 
-		GLint *temp = (GLint *) GL_CHECK(glMapBufferRange(GL_DISPATCH_INDIRECT_BUFFER, sizeof(ComputeIndirectCommand) * level, sizeof(ComputeIndirectCommand), GL_MAP_READ_BIT));
-		LOGD("Compute Indirect Buffer level %i: %i, %i, %i", level, temp[0], temp[1], temp[2]);
-		GL_CHECK(glUnmapBuffer(GL_DISPATCH_INDIRECT_BUFFER));
+		//GLint *temp = (GLint *) GL_CHECK(glMapBufferRange(GL_DISPATCH_INDIRECT_BUFFER, sizeof(ComputeIndirectCommand) * level, sizeof(ComputeIndirectCommand), GL_MAP_READ_BIT));
+		//LOGD("Compute Indirect Buffer level %i: %i, %i, %i", level, temp[0], temp[1], temp[2]);
+		//GL_CHECK(glUnmapBuffer(GL_DISPATCH_INDIRECT_BUFFER));
 	}
 	GL_CHECK(glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT));
 }

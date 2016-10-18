@@ -25,6 +25,7 @@ class Program {
 private:
 	GLint winWidth, winHeight;
 
+	GLint takeTime;
 	Timer time;
 //    GLTimer glTime;
 	GLfloat FPS;

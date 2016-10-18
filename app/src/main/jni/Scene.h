@@ -118,8 +118,6 @@ private:
 
 	bool SetupScene(const char *path);
 
-	void SetupVoxelTextures();
-
 	void SetupShadowTexture();
 
 	void SetupShadowMatrix();
@@ -147,6 +145,8 @@ public:
 	void Draw();
 
 	void UpdateBuffers();
+
+	void SetupVoxelTextures();
 
 	void SetupSceneTextures();
 

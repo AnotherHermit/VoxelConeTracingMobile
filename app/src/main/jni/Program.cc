@@ -30,6 +30,7 @@ Program::Program() {
 	useOrtho = false;
 	drawVoxelOverlay = false;
 	scrollLight = false;
+	takeTime = 0;
 }
 
 Program::~Program() {
@@ -82,6 +83,7 @@ void Program::ToggleProgram() {
 	current++;
 	current %= 5;
 	GetCurrentScene()->GetSceneParam()->voxelDraw = current;
+	takeTime = 0;
 }
 
 void Program::ToggleLightTouch() {
@@ -156,11 +158,32 @@ bool Program::Init() {
 //    if (!sponza->Init(MODEL_PATH("sponza.obj"), &shaders)) return false;
 //    scenes.push_back(sponza);
 
+
+	GL_CHECK(glFinish());
 	// Initial Voxelization of the scenes
+	time.startTimer();
 	cornell->CreateShadow();
+	GL_CHECK(glFinish());
+	time.endTimer();
+	LOGD("Create Shadow time: %f ms", time.getTimeMS());
+
+	time.startTimer();
 	cornell->RenderData();
+	GL_CHECK(glFinish());
+	time.endTimer();
+	LOGD("Render Data time: %f ms", time.getTimeMS());
+
+	time.startTimer();
 	cornell->Voxelize();
+	GL_CHECK(glFinish());
+	time.endTimer();
+	LOGD("Voxelize time: %f ms", time.getTimeMS());
+
+	time.startTimer();
 	cornell->MipMap();
+	GL_CHECK(glFinish());
+	time.endTimer();
+	LOGD("MipMap time: %f ms", time.getTimeMS());
 
 //    sponza->CreateShadow();
 //    sponza->RenderData();
@@ -176,16 +199,68 @@ void Program::Update() {
 
 	// Update the camera
 	cam->Update(param.deltaT);
+
+
+	GetCurrentScene()->SetupVoxelTextures();
 }
 
 void Program::Render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	if (takeTime < 5) {
+		GL_CHECK(glFinish());
+		LOGD("Draw scene: %d", GetCurrentScene()->GetSceneParam()->voxelDraw);
+		time.startTimer();
+	}
+
 	GetCurrentScene()->CreateShadow();
+
+	if (takeTime < 5) {
+		GL_CHECK(glFinish());
+		time.endTimer();
+		LOGD("Create Shadow time: %f ms", time.getTimeMS());
+
+		time.startTimer();
+	}
+
 	GetCurrentScene()->RenderData();
-//	GetCurrentScene()->Voxelize();
-//	GetCurrentScene()->MipMap();
+
+	if (takeTime < 5) {
+		GL_CHECK(glFinish());
+		time.endTimer();
+		LOGD("Render Data time: %f ms", time.getTimeMS());
+
+		time.startTimer();
+	}
+
+	GetCurrentScene()->Voxelize();
+
+	if (takeTime < 5) {
+		GL_CHECK(glFinish());
+		time.endTimer();
+		LOGD("Voxelize time: %f ms", time.getTimeMS());
+
+		time.startTimer();
+	}
+
+	GetCurrentScene()->MipMap();
+
+	if (takeTime < 5) {
+		GL_CHECK(glFinish());
+		time.endTimer();
+		LOGD("Mipmap time: %f ms", time.getTimeMS());
+
+		time.startTimer();
+	}
+
 	GetCurrentScene()->Draw();
+
+	if (takeTime < 5) {
+		GL_CHECK(glFinish());
+		time.endTimer();
+		LOGD("Draw time: %f ms", time.getTimeMS());
+		takeTime++;
+	}
 }
 
 void Program::Clean() {
