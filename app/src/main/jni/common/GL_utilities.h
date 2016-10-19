@@ -3,7 +3,7 @@
 
 #include <android/log.h>
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #define GL_CHECK(fn) fn; printError(#fn, __FILE__, __LINE__)

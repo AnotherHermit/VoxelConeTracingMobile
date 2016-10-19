@@ -368,6 +368,11 @@ vec3 BasicLight(vec3 p, vec3 n){
 vec4 Basic() {
     vec3 p = ScenePosition().xyz;
     vec3 n = SceneNormal().xyz;
+
+    if (length(n) < 0.5f) {
+        return vec4(0.0f);
+    }
+
     vec4 c = SceneColor();
     vec3 l = BasicLight(p, n);
 
@@ -375,12 +380,21 @@ vec4 Basic() {
     c.xyz += 0.5f * l.y; // Diffuse
     c.xyz += 0.2f * l.z; // Speclar
 
-    return c;
+    if (length(n) < 0.5f) {
+        return vec4(vec3(1.0f), 1.0f);
+    } else {
+        return c;
+    }
 }
 
 vec4 BasicShadows() {
     vec3 p = ScenePosition().xyz;
     vec3 n = SceneNormal().xyz;
+
+    if (length(n) < 0.5f) {
+        return vec4(0.0f);
+    }
+
     vec4 c = SceneColor();
     vec3 l = BasicLight(p, n);
     float s = 1.0f - 0.5f * ShadowMapping(p, n);
@@ -395,6 +409,11 @@ vec4 BasicShadows() {
 vec4 BasicAOShadows() {
     vec3 p = ScenePosition().xyz;
     vec3 n = SceneNormal().xyz;
+
+    if (length(n) < 0.5f) {
+        return vec4(0.0f);
+    }
+
     vec3 t = SceneTangent().xyz;
     float m = 0.03f;
     vec4 c = SceneColor();
@@ -412,6 +431,11 @@ vec4 BasicAOShadows() {
 vec4 GIAOShadows() {
     vec3 p = ScenePosition().xyz;
     vec3 n = SceneNormal().xyz;
+
+    if (length(n) < 0.5f) {
+        return vec4(0.0f);
+    }
+
     vec3 t = SceneTangent().xyz;
     float m = 1.0f;
     vec4 c = SceneColor();
@@ -430,6 +454,11 @@ vec4 GIAOShadows() {
 vec4 GIAOSoftShadows() {
     vec3 p = ScenePosition().xyz;
     vec3 n = SceneNormal().xyz;
+
+    if (length(n) < 0.5f) {
+        return vec4(0.0f);
+    }
+
     vec3 t = SceneTangent().xyz;
     float m = 1.0f;
     vec4 c = SceneColor();
@@ -447,14 +476,14 @@ vec4 GIAOSoftShadows() {
 
 vec4 DemoScene() {
     switch(texNumber) {
-        case 0: return Basic();
-        case 1: return BasicShadows();
-        case 2: return BasicAOShadows();
-        case 3: return GIAOShadows();
-        case 4: return GIAOSoftShadows();
+        case 1: return Basic();
+        case 3: return BasicShadows();
+        case 5: return BasicAOShadows();
+        case 7: return GIAOShadows();
+        case 9: return GIAOSoftShadows();
         default: break;
     }
-    return vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    return vec4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void main()

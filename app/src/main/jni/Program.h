@@ -25,7 +25,11 @@ class Program {
 private:
 	GLint winWidth, winHeight;
 
-	GLint takeTime;
+	GLint runNumber, takeTime;
+	GLuint runScene;
+	GLfloat sceneAverage[5];
+	GLfloat sceneStatic[2];
+	GLuint sceneNum;
 	Timer time;
 //    GLTimer glTime;
 	GLfloat FPS;
@@ -51,6 +55,7 @@ private:
 	GLfloat cameraStartPolar;
 	glm::vec3 cameraStartTarget;
 	GLfloat cameraFrustumFar;
+	GLfloat cameraStartFov;
 
 	// Methods
 	void UploadParams();

@@ -13,7 +13,7 @@ public class MainActivity extends Activity {
 		super.onCreate(icicle);
 		mView = new GLESView(getApplication());
 
-		mView.getHolder().setFixedSize(450, 800);
+		mView.getHolder().setFixedSize(400, 400);
 
 		setContentView(mView);
 	}

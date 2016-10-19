@@ -26,10 +26,11 @@ Camera::Camera() {
 	yvec = glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
-bool Camera::Init(GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
+bool Camera::Init(GLfloat fovInit, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
 	winHeight = screenHeight;
 	winWidth = screenWidth;
 	frustumFar = farInit;
+	fov = fovInit;
 
 	Resize();
 
@@ -48,15 +49,10 @@ void Camera::Reset() {
 }
 
 void Camera::Resize() {
-	GLfloat ratio = (GLfloat) *winWidth / (GLfloat) *winHeight;
-	ratioW = (ratio > 1.0f) ? 1.0f : ratio;
-	ratioH = (ratio > 1.0f) ? 1.0f / ratio : 1.0f;
-
-	needUpdate = true;
-}
-
-void Camera::UpdateFrustum() {
-	param.VTPmatrix = glm::frustum(-ratioW, ratioW, -ratioH, ratioH, 1.0f, frustumFar);
+	if (*winWidth > 0 && *winHeight > 0) {
+		param.VTPmatrix = glm::perspectiveFov(glm::radians(fov), (GLfloat) *winWidth, (GLfloat) *winHeight, 1.0f, frustumFar);
+		needUpdate = true;
+	}
 }
 
 void Camera::UploadParams() {
@@ -67,7 +63,6 @@ void Camera::UploadParams() {
 void Camera::Update(GLfloat deltaT) {
 	if (needUpdate) {
 		UpdateParams(deltaT);
-		UpdateFrustum();
 		UploadParams();
 	}
 	needUpdate = false;
@@ -87,11 +82,11 @@ FPCamera::FPCamera() : Camera() {
 	moveVec = glm::vec3(0, 0, 0);
 }
 
-bool FPCamera::Init(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
+bool FPCamera::Init(glm::vec3 startpos, GLfloat fovInit, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
 	startPos = startpos;
 	param.position = startPos;
 
-	return Camera::Init(screenWidth, screenHeight, farInit);
+	return Camera::Init(fovInit, screenWidth, screenHeight, farInit);
 }
 
 void FPCamera::UpdateParams(GLfloat deltaT) {
@@ -170,13 +165,14 @@ void OrbitCamera::UpdateParams(GLfloat deltaT) {
 														 cos(polar),
 														 sin(polar) * sin(azimuth));
 	param.position *= distance;
+	param.position += target;
 
 	lookp = target;
 
 	param.WTVmatrix = lookAt(param.position, lookp, yvec);
 }
 
-bool OrbitCamera::Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat initPolar, GLfloat initAzimuth, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
+bool OrbitCamera::Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat initPolar, GLfloat initAzimuth, GLfloat fovInit, GLint *screenWidth, GLint *screenHeight, GLfloat farInit) {
 	startTarget = initTarget;
 	target = startTarget;
 	distance = initDistance;
@@ -184,7 +180,7 @@ bool OrbitCamera::Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat initP
 	polar = initPolar;
 	azimuth = initAzimuth;
 
-	return Camera::Init(screenWidth, screenHeight, farInit);
+	return Camera::Init(fovInit, screenWidth, screenHeight, farInit);
 }
 
 void OrbitCamera::Reset() {

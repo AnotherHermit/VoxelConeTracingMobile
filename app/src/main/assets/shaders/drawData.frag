@@ -55,6 +55,6 @@ void main()
 	outNormal = vec4(normalize(exNormal), 1.0f);
 	outTangent = vec4(normalize(exTangent), 1.0f);
 //	outBiTangent = vec4(normalize(exBiTangent), 1.0f);
-	outPosition = exPosition / exPosition.w;
+	outPosition = exPosition;
 	outColor = GetColor();
 }

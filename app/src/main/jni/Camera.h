@@ -25,7 +25,7 @@ class Camera {
 protected:
 	glm::vec3 lookp, yvec;
 	glm::vec3 startPos;
-	GLfloat frustumFar, ratioW, ratioH;
+	GLfloat frustumFar, fov;
 
 	bool isPaused;
 	bool needUpdate;
@@ -37,15 +37,12 @@ protected:
 
 	virtual void UpdateParams(GLfloat deltaT) = 0;
 
-	void UpdateFrustum();
-
 	void UploadParams();
 
 public:
 	Camera();
 
-	bool Init(GLint *screenWidth, GLint
-	*screenHeight, GLfloat farInit);
+	bool Init(GLfloat fovInit, GLint *screenWidth, GLint	*screenHeight, GLfloat farInit);
 
 	virtual void Reset();
 
@@ -68,7 +65,7 @@ private:
 public:
 	FPCamera();
 
-	bool Init(glm::vec3 startpos, GLint *screenWidth, GLint *screenHeight, GLfloat farInit);
+	bool Init(glm::vec3 startpos, GLfloat fovInit, GLint *screenWidth, GLint *screenHeight, GLfloat farInit);
 
 	void Move(glm::vec3 vec);
 
@@ -106,7 +103,7 @@ private:
 public:
 	OrbitCamera();
 
-	virtual bool Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat initPolar, GLfloat initAzimuth, GLint *screenWidth, GLint *screenHeight, GLfloat farInit);
+	virtual bool Init(glm::vec3 initTarget, GLfloat initDistance, GLfloat initPolar, GLfloat initAzimuth, GLfloat fovInit, GLint *screenWidth, GLint *screenHeight, GLfloat farInit);
 
 	virtual void Reset();
 

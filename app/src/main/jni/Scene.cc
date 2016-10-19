@@ -16,13 +16,13 @@
 
 Scene::Scene() {
 	options.skipNoTexture = false;
-	options.drawTextures = false;
+	options.drawTextures = true;
 	options.drawModels = false;
-	options.drawVoxels = true;
+	options.drawVoxels = false;
 	options.shadowRes = 512;
 
 	param.lightDir = glm::vec3(0.577f, 0.577f, 0.577f);
-	param.voxelRes = RES128;
+	param.voxelRes = RES256;
 	param.voxelLayer = 0;
 	param.voxelDraw = 0;
 	param.view = VIEW_X;
@@ -172,8 +172,6 @@ void Scene::SetupVoxelTextures() {
 	// Create the 3D texture that contains the voxel data
 	if (voxelTex != 0) {
 		GL_CHECK(glDeleteTextures(1, &voxelTex));
-		GL_CHECK(glFinish());
-		LOGD("Texture ID: %d", voxelTex);
 	}
 	GL_CHECK(glGenTextures(1, &voxelTex));
 	GL_CHECK(glBindTexture(GL_TEXTURE_3D, voxelTex));

@@ -20,17 +20,27 @@ Program::Program() {
 
 	// Set program parameters
 	//cameraStartPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	cameraStartDistance = 3.0f;
-	cameraStartAzimuth = (GLfloat) M_PI_2;
-	cameraStartPolar = (GLfloat) M_PI / 2.3f;
+	cameraStartDistance = 2.9f;
+	cameraStartAzimuth = (GLfloat) M_PI_2;//(GLfloat) M_PI_2; (GLfloat) M_PI_4;
+	cameraStartPolar = (GLfloat) M_PI / 2.3f;//(GLfloat) M_PI / 2.3f; (GLfloat) M_PI / 1.8f;
 	cameraStartTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-	cameraFrustumFar = 10.0f;
+	cameraStartFov = 60.0f;
+	cameraFrustumFar = 20.0f;
 
 	sceneSelect = 0;
 	useOrtho = false;
 	drawVoxelOverlay = false;
 	scrollLight = false;
 	takeTime = 0;
+	runNumber = 0;
+	runScene = 0;
+	sceneAverage[0] = 0.0f;
+	sceneAverage[1] = 0.0f;
+	sceneAverage[2] = 0.0f;
+	sceneAverage[3] = 0.0f;
+	sceneAverage[4] = 0.0f;
+	sceneStatic[0] = 0.0f;
+	sceneStatic[1] = 0.0f;
 }
 
 Program::~Program() {
@@ -50,8 +60,6 @@ void Program::Step() {
 }
 
 void Program::Resize(int width, int height) {
-	LOGD("Resize called, width: %d, height: %d", width, height);
-
 	winWidth = width;
 	winHeight = height;
 	glViewport(0, 0, width, height);
@@ -79,11 +87,24 @@ void Program::Scale(float scale) {
 }
 
 void Program::ToggleProgram() {
-	GLuint current = GetCurrentScene()->GetSceneParam()->voxelDraw;
-	current++;
-	current %= 5;
-	GetCurrentScene()->GetSceneParam()->voxelDraw = current;
-	takeTime = 0;
+	runScene = GetCurrentScene()->GetSceneParam()->voxelDraw;
+	runScene++;
+	runScene %= 10;
+	GetCurrentScene()->GetSceneParam()->voxelDraw = runScene;
+	runNumber = 0;
+	sceneNum = runScene / 2 + 1;
+	sceneAverage[0] = 0.0f;
+	sceneAverage[1] = 0.0f;
+	sceneAverage[2] = sceneNum > 2 ? sceneStatic[0] : 0.0f;
+	sceneAverage[3] = sceneNum > 2 ? sceneStatic[1] : 0.0f;
+	sceneAverage[4] = 0.0f;
+	if (runScene == 0 && takeTime) {
+		takeTime++;
+	}
+
+	if (takeTime > 3) {
+		takeTime = 0;
+	}
 }
 
 void Program::ToggleLightTouch() {
@@ -138,7 +159,7 @@ bool Program::Init() {
 
 	// Set up the camera
 	cam = new OrbitCamera();
-	if (!cam->Init(cameraStartTarget, cameraStartDistance, cameraStartPolar, cameraStartAzimuth, &winWidth, &winHeight, cameraFrustumFar)) {
+	if (!cam->Init(cameraStartTarget, cameraStartDistance, cameraStartPolar, cameraStartAzimuth, cameraStartFov, &winWidth, &winHeight, cameraFrustumFar)) {
 		LOGE("Camera not initialized!");
 		return false;
 	}
@@ -159,31 +180,35 @@ bool Program::Init() {
 //    scenes.push_back(sponza);
 
 
-	GL_CHECK(glFinish());
+//	GL_CHECK(glFinish());
 	// Initial Voxelization of the scenes
-	time.startTimer();
+//	time.startTimer();
 	cornell->CreateShadow();
-	GL_CHECK(glFinish());
-	time.endTimer();
-	LOGD("Create Shadow time: %f ms", time.getTimeMS());
+//	GL_CHECK(glFinish());
+//	time.endTimer();
+//	LOGD("Create Shadow time: %f ms", time.getTimeMS());
 
-	time.startTimer();
+//	time.startTimer();
 	cornell->RenderData();
 	GL_CHECK(glFinish());
-	time.endTimer();
-	LOGD("Render Data time: %f ms", time.getTimeMS());
+//	time.endTimer();
+//	LOGD("Render Data time: %f ms", time.getTimeMS());
 
 	time.startTimer();
 	cornell->Voxelize();
 	GL_CHECK(glFinish());
 	time.endTimer();
-	LOGD("Voxelize time: %f ms", time.getTimeMS());
+	sceneStatic[0] = time.getTimeMS();
 
 	time.startTimer();
 	cornell->MipMap();
 	GL_CHECK(glFinish());
 	time.endTimer();
-	LOGD("MipMap time: %f ms", time.getTimeMS());
+	sceneStatic[1] = time.getTimeMS();
+
+
+	LOGD("Time per step logging");
+	LOGD("Scene\t  CSA  \t  RDA  \t  V    \t  M    \t  DA");
 
 //    sponza->CreateShadow();
 //    sponza->RenderData();
@@ -199,67 +224,70 @@ void Program::Update() {
 
 	// Update the camera
 	cam->Update(param.deltaT);
-
-
-	GetCurrentScene()->SetupVoxelTextures();
 }
 
 void Program::Render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (takeTime < 5) {
+	if (runNumber < 5 && runScene % 2 && takeTime) {
 		GL_CHECK(glFinish());
-		LOGD("Draw scene: %d", GetCurrentScene()->GetSceneParam()->voxelDraw);
 		time.startTimer();
 	}
 
 	GetCurrentScene()->CreateShadow();
 
-	if (takeTime < 5) {
+	if (runNumber < 5 && runScene % 2 && takeTime) {
 		GL_CHECK(glFinish());
 		time.endTimer();
-		LOGD("Create Shadow time: %f ms", time.getTimeMS());
+		sceneAverage[0] += time.getTimeMS() / 5.0f;
 
 		time.startTimer();
 	}
 
 	GetCurrentScene()->RenderData();
 
-	if (takeTime < 5) {
+	if (runNumber < 5 && runScene % 2 && takeTime) {
 		GL_CHECK(glFinish());
 		time.endTimer();
-		LOGD("Render Data time: %f ms", time.getTimeMS());
+		sceneAverage[1] += time.getTimeMS() / 5.0f;
 
 		time.startTimer();
 	}
 
-	GetCurrentScene()->Voxelize();
-
-	if (takeTime < 5) {
-		GL_CHECK(glFinish());
-		time.endTimer();
-		LOGD("Voxelize time: %f ms", time.getTimeMS());
-
-		time.startTimer();
-	}
-
-	GetCurrentScene()->MipMap();
-
-	if (takeTime < 5) {
-		GL_CHECK(glFinish());
-		time.endTimer();
-		LOGD("Mipmap time: %f ms", time.getTimeMS());
-
-		time.startTimer();
-	}
+//	GetCurrentScene()->Voxelize();
+//
+//	if (runNumber < 5 && runScene % 2 && takeTime) {
+//		GL_CHECK(glFinish());
+//		time.endTimer();
+//		LOGD("Voxelize time: %f ms", time.getTimeMS());
+//
+//		time.startTimer();
+//	}
+//
+//	GetCurrentScene()->MipMap();
+//
+//	if (runNumber < 5 && runScene % 2 && takeTime) {
+//		GL_CHECK(glFinish());
+//		time.endTimer();
+//		LOGD("Mipmap time: %f ms", time.getTimeMS());
+//
+//		time.startTimer();
+//	}
 
 	GetCurrentScene()->Draw();
 
-	if (takeTime < 5) {
+	if (runNumber < 5 && runScene % 2 && takeTime) {
 		GL_CHECK(glFinish());
 		time.endTimer();
-		LOGD("Draw time: %f ms", time.getTimeMS());
-		takeTime++;
+		sceneAverage[4] += time.getTimeMS() / 5.0f;
+		runNumber++;
+	}
+
+	if (runNumber == 5 && runScene % 2 && takeTime) {
+		LOGD("%4d \t%7.3f\t%7.3f\t%7.3f\t%7.3f\t%7.3f", sceneNum, sceneNum == 1 ? 0.0f : sceneAverage[0], sceneAverage[1], sceneAverage[2], sceneAverage[3], sceneAverage[4]);
+		ToggleProgram();
+	} else if (runScene % 2 == 0 && takeTime) {
+		ToggleProgram();
 	}
 }
 
