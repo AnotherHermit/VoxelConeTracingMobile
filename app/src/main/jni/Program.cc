@@ -31,7 +31,8 @@ Program::Program() {
 	useOrtho = false;
 	drawVoxelOverlay = false;
 	scrollLight = false;
-	takeTime = 0;
+
+	takeTime = 1;
 	runNumber = 0;
 	runScene = 0;
 	sceneAverage[0] = 0.0f;
@@ -41,6 +42,10 @@ Program::Program() {
 	sceneAverage[4] = 0.0f;
 	sceneStatic[0] = 0.0f;
 	sceneStatic[1] = 0.0f;
+
+	takeFrameTime = 0;
+	frame = 0;
+	frameAverage = 0.0f;
 }
 
 Program::~Program() {
@@ -53,9 +58,35 @@ void Program::Step() {
 	Update();
 //    glTime.endTimer();
 //    LOGD("Update time: %f ms", glTime.getTimeMS());
-//    glTime.startTimer();
+
+
+
 	Render();
-//    glTime.endTimer();
+
+	if(takeFrameTime && runScene % 2) {
+		GL_CHECK(glFinish());
+		time.endTimer();
+		frameAverage += time.getTimeMS() / 10.0f;
+		frame++;
+	}
+
+	if(frame > 9 && takeFrameTime && runScene % 2) {
+		frame = 0;
+
+		LOGD("Draw average: %f", frameAverage);
+		frameAverage = 0.0f;
+		ToggleProgram();
+	} else if (takeFrameTime && runScene % 2 == 0) {
+		ToggleProgram();
+	}
+
+	if (runScene == 0 && takeFrameTime) {
+		takeFrameTime++;
+	}
+
+	if (takeFrameTime > 3) {
+		takeFrameTime = 0;
+	}
 //    LOGD("Draw time: %f ms", glTime.getTimeMS());
 }
 
@@ -89,14 +120,14 @@ void Program::Scale(float scale) {
 void Program::ToggleProgram() {
 	runScene = GetCurrentScene()->GetSceneParam()->voxelDraw;
 	runScene++;
-	runScene %= 10;
+	runScene %= 6;
 	GetCurrentScene()->GetSceneParam()->voxelDraw = runScene;
 	runNumber = 0;
 	sceneNum = runScene / 2 + 1;
 	sceneAverage[0] = 0.0f;
 	sceneAverage[1] = 0.0f;
-	sceneAverage[2] = sceneNum > 2 ? sceneStatic[0] : 0.0f;
-	sceneAverage[3] = sceneNum > 2 ? sceneStatic[1] : 0.0f;
+	sceneAverage[2] = sceneNum > 0 ? sceneStatic[0] : 0.0f;
+	sceneAverage[3] = sceneNum > 0 ? sceneStatic[1] : 0.0f;
 	sceneAverage[4] = 0.0f;
 	if (runScene == 0 && takeTime) {
 		takeTime++;
@@ -206,9 +237,13 @@ bool Program::Init() {
 	time.endTimer();
 	sceneStatic[1] = time.getTimeMS();
 
-
-	LOGD("Time per step logging");
-	LOGD("Scene\t  CSA  \t  RDA  \t  V    \t  M    \t  DA");
+	if(takeTime) {
+		LOGD("Time per step logging");
+		LOGD("Scene\t  CSA  \t  RDA  \t  V    \t  M    \t  DA");
+	} else {
+		LOGD("  V    \t  M");
+		LOGD("%7.3f\t%7.3f", sceneStatic[0], sceneStatic[1]);
+	}
 
 //    sponza->CreateShadow();
 //    sponza->RenderData();
@@ -229,19 +264,26 @@ void Program::Update() {
 void Program::Render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	if(takeFrameTime && runScene % 2) {
+		GL_CHECK(glFinish());
+		time.startTimer();
+	}
+
 	if (runNumber < 5 && runScene % 2 && takeTime) {
 		GL_CHECK(glFinish());
 		time.startTimer();
 	}
 
-	GetCurrentScene()->CreateShadow();
+	if(sceneNum == 1 || true) {
+		GetCurrentScene()->CreateShadow();
 
-	if (runNumber < 5 && runScene % 2 && takeTime) {
-		GL_CHECK(glFinish());
-		time.endTimer();
-		sceneAverage[0] += time.getTimeMS() / 5.0f;
+		if (runNumber < 5 && runScene % 2 && takeTime) {
+			GL_CHECK(glFinish());
+			time.endTimer();
+			sceneAverage[0] += time.getTimeMS() / 5.0f;
 
-		time.startTimer();
+			time.startTimer();
+		}
 	}
 
 	GetCurrentScene()->RenderData();
@@ -284,7 +326,7 @@ void Program::Render() {
 	}
 
 	if (runNumber == 5 && runScene % 2 && takeTime) {
-		LOGD("%4d \t%7.3f\t%7.3f\t%7.3f\t%7.3f\t%7.3f", sceneNum, sceneNum == 1 ? 0.0f : sceneAverage[0], sceneAverage[1], sceneAverage[2], sceneAverage[3], sceneAverage[4]);
+		LOGD("%4d \t%7.3f\t%7.3f\t%7.3f\t%7.3f\t%7.3f", sceneNum + 2, sceneNum == 1 ? 0.0f : sceneAverage[0], sceneAverage[1], sceneAverage[2], sceneAverage[3], sceneAverage[4]);
 		ToggleProgram();
 	} else if (runScene % 2 == 0 && takeTime) {
 		ToggleProgram();

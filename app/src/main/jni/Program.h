@@ -26,9 +26,11 @@ private:
 	GLint winWidth, winHeight;
 
 	GLint runNumber, takeTime;
+	GLint takeFrameTime, frame;
 	GLuint runScene;
 	GLfloat sceneAverage[5];
 	GLfloat sceneStatic[2];
+	GLfloat frameAverage;
 	GLuint sceneNum;
 	Timer time;
 //    GLTimer glTime;
