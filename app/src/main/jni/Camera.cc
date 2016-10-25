@@ -23,6 +23,7 @@ Camera::Camera() {
 	isPaused = false;
 	needUpdate = true;
 
+	rspeed = 0.001f;
 	yvec = glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
@@ -76,7 +77,6 @@ void Camera::Update(GLfloat deltaT) {
 
 FPCamera::FPCamera() : Camera() {
 	mspeed = 10.0f;
-	rspeed = 0.001f;
 	phi = 2.0f * (float) M_PI / 2.0f;
 	theta = 2.0f * (float) M_PI / 4.0f;
 	moveVec = glm::vec3(0, 0, 0);
@@ -156,8 +156,6 @@ OrbitCamera::OrbitCamera() {
 	target = startTarget;
 
 	distance = 1.0f;
-
-	rspeed = 0.001f;
 }
 
 void OrbitCamera::UpdateParams(GLfloat deltaT) {

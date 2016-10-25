@@ -25,7 +25,7 @@ class Camera {
 protected:
 	glm::vec3 lookp, yvec;
 	glm::vec3 startPos;
-	GLfloat frustumFar, fov;
+	GLfloat frustumFar, fov, rspeed;
 
 	bool isPaused;
 	bool needUpdate;
@@ -58,7 +58,7 @@ public:
 class FPCamera : public Camera {
 private:
 	glm::vec3 forward, right, up, moveVec;
-	GLfloat mspeed, rspeed, phi, theta;
+	GLfloat mspeed, phi, theta;
 
 	virtual void UpdateParams(GLfloat deltaT = 1.0f);
 
@@ -96,7 +96,6 @@ class OrbitCamera : public Camera {
 private:
 	glm::vec3 target, startTarget;
 	GLfloat distance, polar, azimuth;
-	GLfloat rspeed;
 
 	virtual void UpdateParams(GLfloat deltaT = 1.0f);
 
