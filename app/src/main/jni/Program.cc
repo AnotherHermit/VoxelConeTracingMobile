@@ -32,7 +32,7 @@ Program::Program() {
 	drawVoxelOverlay = false;
 	scrollLight = false;
 
-	takeTime = 1;
+	takeTime = 0;
 	runNumber = 0;
 	runScene = 0;
 	sceneAverage[0] = 0.0f;
@@ -120,7 +120,7 @@ void Program::Scale(float scale) {
 void Program::ToggleProgram() {
 	runScene = GetCurrentScene()->GetSceneParam()->voxelDraw;
 	runScene++;
-	runScene %= 6;
+	runScene %= 5;
 	GetCurrentScene()->GetSceneParam()->voxelDraw = runScene;
 	runNumber = 0;
 	sceneNum = runScene / 2 + 1;

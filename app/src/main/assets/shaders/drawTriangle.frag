@@ -476,11 +476,11 @@ vec4 GIAOSoftShadows() {
 
 vec4 DemoScene() {
     switch(texNumber) {
-        case 9: return Basic();
-        case 7: return BasicShadows();
-        case 1: return BasicAOShadows();
+        case 0: return Basic();
+        case 1: return BasicShadows();
+        case 2: return BasicAOShadows();
         case 3: return GIAOShadows();
-        case 5: return GIAOSoftShadows();
+        case 4: return GIAOSoftShadows();
         default: break;
     }
     return vec4(0.0f, 0.0f, 0.0f, 1.0f);
