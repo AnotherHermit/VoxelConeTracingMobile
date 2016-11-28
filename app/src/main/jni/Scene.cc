@@ -21,10 +21,10 @@ Scene::Scene() {
 	options.drawVoxels = false;
 	options.shadowRes = 512;
 
-	param.lightDir = glm::vec3(0.577f, 0.577f, 0.577f);
+	param.lightDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
 	param.voxelRes = RES256;
 	param.voxelLayer = 0;
-	param.voxelDraw = 0;
+	param.voxelDraw = 4;
 	param.view = VIEW_X;
 	param.numMipLevels = (GLuint) log2(param.voxelRes);
 	param.mipLevel = 0;

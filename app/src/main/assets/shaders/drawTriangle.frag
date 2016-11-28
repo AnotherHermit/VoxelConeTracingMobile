@@ -376,15 +376,10 @@ vec4 Basic() {
     vec4 c = SceneColor();
     vec3 l = BasicLight(p, n);
 
-    c.xyz *= 0.8f * l.x; // Ambient
-    c.xyz += 0.5f * l.y; // Diffuse
-    c.xyz += 0.2f * l.z; // Speclar
+	vec4 f = vec4(1.0f);
+	f.xyz = c.xyz * (0.05f + l.y + 0.2f * l.z);
 
-    if (length(n) < 0.5f) {
-        return vec4(vec3(1.0f), 1.0f);
-    } else {
-        return c;
-    }
+    return f;
 }
 
 vec4 BasicShadows() {
@@ -397,13 +392,13 @@ vec4 BasicShadows() {
 
     vec4 c = SceneColor();
     vec3 l = BasicLight(p, n);
-    float s = 1.0f - 0.5f * ShadowMapping(p, n);
+	float a = 0.9;
+    float s = 1.0f - 0.95 * ShadowMapping(p, n);
 
-    c.xyz *= 0.8f * l.x; // Ambient
-    c.xyz += 0.5f * l.y * s; // Diffuse
-    c.xyz += 0.2f * l.z * s; // Speclar
+	vec4 f = vec4(1.0f);
+	f.xyz = c.xyz * (0.05f + (l.y + 0.2f * l.z) * s);
 
-    return c;
+    return f;//vec4(vec3(1.0f - ShadowMapping(p, n)),1.0f);
 }
 
 vec4 BasicAOShadows() {
@@ -416,16 +411,17 @@ vec4 BasicAOShadows() {
 
     vec3 t = SceneTangent().xyz;
     float m = 0.03f;
+    float a = 0.9;
     vec4 c = SceneColor();
     vec3 l = BasicLight(p, n);
-    float s = 1.0f - 0.5f * ShadowMapping(p, n);
+    float s = 1.0f - ShadowMapping(p, n);
     vec4 d = DiffuseTrace(p, n, t, m);
+	s = mix(d.w, s * d.w, a);
 
-    c.xyz *= (0.4f * l.x + 0.4f * d.w); // Ambient
-    c.xyz += 0.5f * l.y * s; // Diffuse
-    c.xyz += 0.2f * l.z * s; // Speclar
+	vec4 f = vec4(1.0f);
+	f.xyz = c.xyz * (0.05f * d.w + (l.y + 0.2f * l.z) * s);
 
-    return c;
+    return f;
 }
 
 vec4 GIAOShadows() {
@@ -437,18 +433,19 @@ vec4 GIAOShadows() {
     }
 
     vec3 t = SceneTangent().xyz;
-    float m = 1.0f;
+    float m = 1.5f;
+    float a = 0.9;
     vec4 c = SceneColor();
     vec3 l = BasicLight(p, n);
-    float s = 1.0f - 0.5f * ShadowMapping(p, n);
+    float s = 1.0f - ShadowMapping(p, n);
     vec4 d = DiffuseTrace(p, n, t, m);
 
-    c.xyz += 0.5f * d.xyz;
-    c.xyz *= (0.4f * l.x + 0.4f * d.w); // Ambient
-    c.xyz += 0.5f * l.y * s; // Diffuse
-    c.xyz += 0.2f * l.z * s; // Speclar
 
-    return c;
+	s = mix(d.w, s * d.w, a);
+	vec4 f = vec4(1.0f);
+	f.xyz = l.y * s * c.xyz + 2.0f * d.xyz * c.xyz;
+
+    return f;
 }
 
 vec4 GIAOSoftShadows() {
@@ -460,18 +457,18 @@ vec4 GIAOSoftShadows() {
     }
 
     vec3 t = SceneTangent().xyz;
-    float m = 1.0f;
+    float m = 1.5f;
+    float a = 0.9;
     vec4 c = SceneColor();
     vec3 l = BasicLight(p, n);
     float s = 1.0f - AngleTrace(scene.lightDir, 5.0f).a;
     vec4 d = DiffuseTrace(p, n, t, m);
 
-    c.xyz += 0.5f * d.xyz;
-    c.xyz *= (0.4f * l.x + 0.4f * d.w); // Ambient
-    c.xyz += 0.5f * l.y * s; // Diffuse
-    c.xyz += 0.2f * l.z * s; // Speclar
+	s = mix(d.w, s * d.w, a);
+	vec4 f = vec4(1.0f);
+	f.xyz = l.y * s * c.xyz + 2.0f * d.xyz * c.xyz;
 
-    return c;
+    return f;
 }
 
 vec4 DemoScene() {
